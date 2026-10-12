@@ -376,9 +376,9 @@ function recomputeLayout(){
 
   const baseItems=state.parts.map((p,i)=>{
     const s=(srcWmm/p.srcNatW)*pxPerMm;
-    return { i, canvas:p.canvas,
-      w:Math.max(1,Math.round(p.w*s)),
-      h:Math.max(1,Math.round(p.h*s)) };
+    const w=Math.max(1,Math.round(p.w*s)), h=Math.max(1,Math.round(p.h*s));
+    const maskInfo=createMask(p.canvas,200);
+    return { i, canvas:p.canvas, w, h, maskInfo };
   });
 
   // 多策略尝试，选页数最少的方案
@@ -432,7 +432,31 @@ function recomputeLayout(){
   const firstScale=(srcWmm/state.imgs[0].natW)*pxPerMm;
   state.pagesData=best.pages;
   state.layoutMeta={outScale:firstScale,pageWpx,pageHpx,gap};
+
+  // 验证：检查是否有实际像素重叠，若有则回退到无重叠方案
+  if(hasPixelOverlap(best.pages)){
+    const fallback=baseItems.map(it=>({...it,x:0,y:0}));
+    fallback.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
+    const fbPages=packItems(fallback,innerW,innerH,gap,'bssf');
+    fbPages.forEach(pg=>pg.items.forEach(it=>{it.x+=gap;it.y+=gap;}));
+    state.pagesData=fbPages;
+  }
   render();
+}
+
+// 检查所有页面是否存在实际像素级重叠
+function hasPixelOverlap(pages){
+  for(const pg of pages){
+    const items=pg.items;
+    for(let i=0;i<items.length;i++){
+      for(let j=i+1;j<items.length;j++){
+        if(maskCollide(items[i],items[i].x,items[i].y,items[j],items[j].x,items[j].y,0)){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 function packItems(items,innerW,innerH,gap,heuristic){
@@ -477,23 +501,28 @@ function maskCollide(a,ax,ay,b,bx,by,gap){
   const ox2=Math.min(ax2,bx2),oy2=Math.min(ay2,by2);
   if(ox1>=ox2||oy1>=oy2) return false;
   const stepAx=a.w/am.mw, stepAy=a.h/am.mh;
+  const invBw=bm.mw/b.w, invBh=bm.mh/b.h;
   for(let my=0;my<am.mh;my++){
-    const py=ay+my*stepAy+stepAy/2;
-    if(py<oy1||py>=oy2) continue;
+    const y0=ay+my*stepAy, y1=y0+stepAy;
+    if(y1<oy1||y0>=oy2) continue;
     for(let mx=0;mx<am.mw;mx++){
       if(!am.mask[my*am.mw+mx]) continue;
-      const px=ax+mx*stepAx+stepAx/2;
-      if(px<ox1||px>=ox2) continue;
-      const bmx=Math.floor((px-bx)/b.w*bm.mw);
-      const bmy=Math.floor((py-by)/b.h*bm.mh);
-      if(bmx>=0&&bmx<bm.mw&&bmy>=0&&bmy<bm.mh&&bm.mask[bmy*bm.mw+bmx]) return true;
+      const x0=ax+mx*stepAx, x1=x0+stepAx;
+      if(x1<ox1||x0>=ox2) continue;
+      // 检查该 mask 单元的四个角是否落在 b 的占用区域
+      const pts=[[x0,y0],[x1,y0],[x0,y1],[x1,y1]];
+      for(const [px,py] of pts){
+        if(px<ox1||px>=ox2||py<oy1||py>=oy2) continue;
+        const bmx=Math.floor((px-bx)*invBw);
+        const bmy=Math.floor((py-by)*invBh);
+        if(bmx>=0&&bmx<bm.mw&&bmy>=0&&bmy<bm.mh&&bm.mask[bmy*bm.mw+bmx]) return true;
+      }
     }
   }
   return false;
 }
 
 function packWithMasks(items,innerW,innerH,gap,cmpFn){
-  items.forEach(it=>{ if(!it.maskInfo) it.maskInfo=createMask(it.canvas,120); });
   if(cmpFn) items.sort(cmpFn); else items.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
   const pages=[];
   for(const it of items){
