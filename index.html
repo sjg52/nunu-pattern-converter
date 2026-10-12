@@ -6,16 +6,16 @@
 <title>努努图纸部件识别排版 · 输出图片</title>
 <style>
 :root{
-  --bg:#f6f1e8; --card:#fff; --ink:#3d3630; --mut:#8a7f73;
-  --acc:#d96f4e; --acc-d:#b85a3c; --line:#eee2d3; --ok:#3e8e5a;
+  --bg:#eef4fb; --card:#fff; --ink:#2c3e50; --mut:#6b7d8e;
+  --acc:#4a90d9; --acc-d:#3570b8; --line:#d6e4f0; --ok:#3e8e5a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding-bottom:60px}
 .wrap{max-width:820px;margin:0 auto;padding:0 16px}
-header.top{background:linear-gradient(135deg,#d96f4e,#c95a3f);color:#fff;padding:26px 0 22px;margin-bottom:22px}
+header.top{background:linear-gradient(135deg,#4a90d9,#3570b8);color:#fff;padding:26px 0 22px;margin-bottom:22px}
 header.top h1{font-size:22px;font-weight:700;letter-spacing:.5px}
 header.top p{opacity:.92;font-size:13.5px;margin-top:4px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(80,50,20,.06)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(40,80,120,.08)}
 .step-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .step-num{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
 .step-head h2{font-size:16.5px;font-weight:700}
@@ -23,40 +23,40 @@ header.top p{opacity:.92;font-size:13.5px;margin-top:4px}
 .field-label{font-size:13px;color:var(--mut);margin:14px 0 6px;font-weight:600}
 .field-label:first-of-type{margin-top:0}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg button{border:1px solid #ddd0c0;background:#fff;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
+.seg button{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
 .seg button:hover{border-color:var(--acc);color:var(--acc)}
 .seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .numrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.numrow input[type=number]{width:92px;padding:8px 10px;border:1px solid #ddd0c0;border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink)}
-.numrow input[type=number]:focus{outline:2px solid #f0c4b3;border-color:var(--acc)}
+.numrow input[type=number]{width:92px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink)}
+.numrow input[type=number]:focus{outline:2px solid #b3d0e8;border-color:var(--acc)}
 .numrow .x{color:var(--mut)}
 .numrow .unit{font-size:13px;color:var(--mut)}
-#uploadZone{border:2px dashed #d8c9b8;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .15s;color:var(--mut);font-size:14px}
-#uploadZone:hover,#uploadZone.drag{border-color:var(--acc);background:#fdf8f2;color:var(--acc)}
+#uploadZone{border:2px dashed #b8cde0;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .15s;color:var(--mut);font-size:14px}
+#uploadZone:hover,#uploadZone.drag{border-color:var(--acc);background:#f0f6fc;color:var(--acc)}
 #uploadZone .big{font-size:15px;color:var(--ink);font-weight:600;margin-bottom:4px}
 #uploadPreview{display:none;align-items:center;gap:16px;margin-top:14px}
-#uploadPreview img{max-width:130px;max-height:130px;border:1px solid var(--line);border-radius:10px;object-fit:contain;background:#faf7f2;padding:4px}
+#uploadPreview img{max-width:130px;max-height:130px;border:1px solid var(--line);border-radius:10px;object-fit:contain;background:#f5f9fc;padding:4px}
 #uploadMeta{font-size:13px;color:var(--mut)}
 #uploadMeta b{color:var(--ink)}
 #btnChangeImg{margin-top:6px;border:none;background:none;color:var(--acc);cursor:pointer;font-size:13px;text-decoration:underline;padding:0;font-family:inherit}
-select,input[type=number]{padding:7px 10px;border:1px solid #ddd0c0;border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+select,input[type=number]{padding:7px 10px;border:1px solid #bcd5e8;border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
 .btn{border:none;border-radius:11px;padding:13px 26px;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn.primary{background:var(--acc);color:#fff}
 .btn.primary:hover{background:var(--acc-d)}
-.btn.primary:disabled{background:#d9c8bc;cursor:not-allowed}
-.btn.ghost{border:1px solid #ddd0c0;background:#fff;color:var(--ink)}
+.btn.primary:disabled{background:#c5d6e4;cursor:not-allowed}
+.btn.ghost{border:1px solid #bcd5e8;background:#fff;color:var(--ink)}
 .btn.ghost:hover{border-color:var(--acc);color:var(--acc)}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
 footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
-#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);background:#3d3630;color:#fff;padding:11px 22px;border-radius:999px;font-size:14px;opacity:0;transition:all .3s;z-index:99;max-width:86vw}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);background:#2c3e50;color:#fff;padding:11px 22px;border-radius:999px;font-size:14px;opacity:0;transition:all .3s;z-index:99;max-width:86vw}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .err{color:#c04b3a;font-size:13px;margin-top:8px;display:none}
-.badge{display:inline-block;font-size:12px;font-weight:600;color:#c04b3a;background:#fbe9e5;border-radius:6px;padding:2px 8px;margin-left:6px}
+.badge{display:inline-block;font-size:12px;font-weight:600;color:#c04b3a;background:#e8f0fb;border-radius:6px;padding:2px 8px;margin-left:6px}
 #markedWrap{margin-top:12px;text-align:center;display:none}
 #markedCanvas{max-width:100%;max-height:340px;border:1px solid var(--line);border-radius:10px;background:#fff;image-rendering:auto}
 #markedNote{font-size:12.5px;color:var(--mut);margin-top:6px}
 #detWrap{display:none}
-#detWrap details{background:#faf7f2;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+#detWrap details{background:#f5f9fc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
 #detWrap details summary{cursor:pointer;font-size:13px;color:var(--mut);font-weight:600}
 #detWrap .numrow{margin-top:8px}
 #resultMeta{font-size:14px;color:var(--mut);margin-bottom:12px}
@@ -177,7 +177,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
   <!-- 步骤 4：结果 -->
   <section class="card">
     <div class="step-head">
-      <span class="step-num" style="background:#8a7f73">＝</span><h2>排版结果</h2>
+      <span class="step-num" style="background:#6b7d8e">＝</span><h2>排版结果</h2>
       <span class="hint" id="ratioBadge"></span>
     </div>
     <div id="emptyHint">请先上传图纸图片。</div>
