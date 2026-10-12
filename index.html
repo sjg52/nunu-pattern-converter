@@ -374,42 +374,189 @@ function recomputeLayout(){
   const gap=Math.max(1,Math.round(state.gapMm*pxPerMm));
   const innerW=pageWpx-2*gap, innerH=pageHpx-2*gap;
 
-  const items=state.parts.map((p,i)=>{
+  const baseItems=state.parts.map((p,i)=>{
     const s=(srcWmm/p.srcNatW)*pxPerMm;
     return { i, canvas:p.canvas,
       w:Math.max(1,Math.round(p.w*s)),
       h:Math.max(1,Math.round(p.h*s)) };
   });
-  items.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
 
-  const pages=[];
-  for(const it of items){
-    let placed=false;
-    for(const pg of pages){
-      if(maxRectsPlace(it,pg.free,gap)){ pg.items.push(it); placed=true; break; }
-    }
-    if(!placed){
-      const pg={free:[{x:0,y:0,w:innerW,h:innerH}],items:[]};
-      pages.push(pg);
-      maxRectsPlace(it,pg.free,gap);
-      pg.items.push(it);
+  // 多策略尝试，选页数最少的方案
+  const sortStrategies=[
+    (a,b)=>(b.w*b.h)-(a.w*a.h),           // 面积降序
+    (a,b)=>b.h-a.h,                        // 高度降序
+    (a,b)=>b.w-a.w,                        // 宽度降序
+    (a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h), // 最大边降序
+    (a,b)=>(b.w+b.h)-(a.w+a.h),           // 周长降序
+  ];
+  const heuristics=['bssf','baf','bl'];
+  let best=null;
+  function tryPack(items,h){
+    const pages=packItems(items,innerW,innerH,gap,h);
+    pages.forEach(pg=>pg.items.forEach(it=>{it.x+=gap;it.y+=gap;}));
+    const score=pages.length*1000000 - (pages[pages.length-1]?.items.length||0);
+    if(!best||score<best.score){ best={pages,score}; }
+  }
+  for(const cmp of sortStrategies){
+    for(const h of heuristics){
+      const items=baseItems.map(it=>({...it,x:0,y:0}));
+      items.sort(cmp);
+      tryPack(items,h);
     }
   }
-  pages.forEach(pg=>pg.items.forEach(it=>{it.x+=gap;it.y+=gap;}));
+  // 随机排列搜索
+  for(let iter=0;iter<300;iter++){
+    const items=baseItems.map(it=>({...it,x:0,y:0}));
+    for(let i=items.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [items[i],items[j]]=[items[j],items[i]];
+    }
+    for(const h of heuristics) tryPack(items,h);
+  }
+  // 形状感知排样（允许边界框重叠但检测像素级碰撞）
+  // 多排序尝试，选页数最少
+  const maskSorts=[
+    (a,b)=>(b.w*b.h)-(a.w*a.h),
+    (a,b)=>b.h-a.h,
+    (a,b)=>b.w-a.w,
+    (a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h),
+  ];
+  for(const cmp of maskSorts){
+    const items=baseItems.map(it=>({...it,x:0,y:0}));
+    const pages=packWithMasks(items,innerW,innerH,gap,cmp);
+    pages.forEach(pg=>pg.items.forEach(it=>{it.x+=gap;it.y+=gap;}));
+    const score=pages.length*1000000 - (pages[pages.length-1]?.items.length||0);
+    if(!best||score<best.score) best={pages,score};
+  }
 
   const firstScale=(srcWmm/state.imgs[0].natW)*pxPerMm;
-  state.pagesData=pages;
+  state.pagesData=best.pages;
   state.layoutMeta={outScale:firstScale,pageWpx,pageHpx,gap};
   render();
 }
 
-/* MaxRects bin packing: Best Short Side Fit + clip all free rects + prune */
-function maxRectsPlace(it,free,gap){
+function packItems(items,innerW,innerH,gap,heuristic){
+  const pages=[];
+  for(const it of items){
+    let placed=false;
+    for(const pg of pages){
+      if(maxRectsPlace(it,pg.free,gap,heuristic)){ pg.items.push(it); placed=true; break; }
+    }
+    if(!placed){
+      const pg={free:[{x:0,y:0,w:innerW,h:innerH}],items:[]};
+      pages.push(pg);
+      maxRectsPlace(it,pg.free,gap,heuristic);
+      pg.items.push(it);
+    }
+  }
+  return pages;
+}
+
+/* ---------- 形状感知排样：低分辨率掩码 + 像素级碰撞检测 ---------- */
+function createMask(canvas,maxDim){
+  if(!canvas) return null;
+  const w=canvas.width,h=canvas.height;
+  const s=Math.min(1,maxDim/Math.max(w,h));
+  const mw=Math.max(1,Math.round(w*s)), mh=Math.max(1,Math.round(h*s));
+  const cv=document.createElement('canvas'); cv.width=mw; cv.height=mh;
+  const ctx=cv.getContext('2d');
+  ctx.drawImage(canvas,0,0,mw,mh);
+  let data;
+  try{ data=ctx.getImageData(0,0,mw,mh).data; }catch(e){ return null; }
+  const mask=new Uint8Array(mw*mh);
+  for(let i=0;i<mw*mh;i++) mask[i]=data[i*4+3]>20?1:0;
+  return {mask,mw,mh};
+}
+
+function maskCollide(a,ax,ay,b,bx,by,gap){
+  const ax2=ax+a.w,ay2=ay+a.h,bx2=bx+b.w,by2=by+b.h;
+  if(ax2+gap<=bx||bx2+gap<=ax||ay2+gap<=by||by2+gap<=ay) return false;
+  if(!a.maskInfo||!b.maskInfo) return true;
+  const am=a.maskInfo,bm=b.maskInfo;
+  const ox1=Math.max(ax,bx),oy1=Math.max(ay,by);
+  const ox2=Math.min(ax2,bx2),oy2=Math.min(ay2,by2);
+  if(ox1>=ox2||oy1>=oy2) return false;
+  const stepAx=a.w/am.mw, stepAy=a.h/am.mh;
+  for(let my=0;my<am.mh;my++){
+    const py=ay+my*stepAy+stepAy/2;
+    if(py<oy1||py>=oy2) continue;
+    for(let mx=0;mx<am.mw;mx++){
+      if(!am.mask[my*am.mw+mx]) continue;
+      const px=ax+mx*stepAx+stepAx/2;
+      if(px<ox1||px>=ox2) continue;
+      const bmx=Math.floor((px-bx)/b.w*bm.mw);
+      const bmy=Math.floor((py-by)/b.h*bm.mh);
+      if(bmx>=0&&bmx<bm.mw&&bmy>=0&&bmy<bm.mh&&bm.mask[bmy*bm.mw+bmx]) return true;
+    }
+  }
+  return false;
+}
+
+function packWithMasks(items,innerW,innerH,gap,cmpFn){
+  items.forEach(it=>{ if(!it.maskInfo) it.maskInfo=createMask(it.canvas,120); });
+  if(cmpFn) items.sort(cmpFn); else items.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
+  const pages=[];
+  for(const it of items){
+    let placed=false;
+    for(const pg of pages){
+      const pos=findMaskPos(it,pg.items,innerW,innerH,gap);
+      if(pos){ it.x=pos.x; it.y=pos.y; pg.items.push(it); placed=true; break; }
+    }
+    if(!placed){ it.x=0; it.y=0; pages.push({items:[it]}); }
+  }
+  return pages;
+}
+
+function findMaskPos(it,placed,innerW,innerH,gap){
+  const cands=[{x:0,y:0}];
+  for(const p of placed){
+    cands.push({x:p.x+p.w+gap,y:p.y});
+    cands.push({x:p.x,y:p.y+p.h+gap});
+    cands.push({x:p.x+p.w+gap,y:p.y+p.h+gap});
+  }
+  const step=Math.max(20,Math.round(Math.min(it.w,it.h)/8));
+  for(let y=0;y+it.h<=innerH;y+=step){
+    for(let x=0;x+it.w<=innerW;x+=step){
+      cands.push({x,y});
+    }
+  }
+  const seen=new Set();
+  let bestPos=null, bestScore=Infinity;
+  for(const c of cands){
+    if(c.x<0||c.y<0) continue;
+    if(c.x+it.w>innerW||c.y+it.h>innerH) continue;
+    const key=c.x+','+c.y;
+    if(seen.has(key)) continue; seen.add(key);
+    let ok=true;
+    for(const p of placed){
+      if(maskCollide(it,c.x,c.y,p,p.x,p.y,gap)){ ok=false; break; }
+    }
+    if(!ok) continue;
+    // 紧凑度评分：放置后所有部件的总边界框面积
+    let minX=c.x,minY=c.y,maxX=c.x+it.w,maxY=c.y+it.h;
+    for(const p of placed){
+      if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y;
+      if(p.x+p.w>maxX)maxX=p.x+p.w; if(p.y+p.h>maxY)maxY=p.y+p.h;
+    }
+    const bbArea=(maxX-minX)*(maxY-minY);
+    // 偏好靠左下
+    const score=bbArea*1.0 + c.y*0.3 + c.x*0.1;
+    if(score<bestScore){ bestScore=score; bestPos=c; }
+  }
+  return bestPos;
+}
+
+/* MaxRects bin packing: multiple heuristics + clip all free rects + prune */
+function maxRectsPlace(it,free,gap,heuristic){
+  heuristic=heuristic||'bssf';
   let bi=-1,bs=Infinity;
   for(let i=0;i<free.length;i++){
     const f=free[i];
     if(f.w>=it.w&&f.h>=it.h){
-      const s=Math.min(f.w-it.w,f.h-it.h);
+      let s;
+      if(heuristic==='bssf') s=Math.min(f.w-it.w,f.h-it.h);
+      else if(heuristic==='baf') s=f.w*f.h-it.w*it.h;
+      else /* bl */ s=f.y*100000+f.x;
       if(s<bs){bs=s;bi=i;}
     }
   }
@@ -610,6 +757,8 @@ function onAllLoaded(imgs,okCount){
   if(!imgs.length){ const err=$('imgErr'); err.textContent='图片加载失败'; err.style.display='block'; return; }
   state.imgs=imgs;
   state.imgName=imgs[0].name;
+  // 自动检测源尺寸
+  autoDetectSrcSize(imgs[0].natW,imgs[0].natH);
   // 预览缩略图
   const list=$('previewList'); list.innerHTML='';
   imgs.forEach(e=>{
@@ -624,6 +773,26 @@ function onAllLoaded(imgs,okCount){
   $('detWrap').style.display='block';
   $('recogHint').textContent='识别中…';
   setTimeout(()=>{ recognizeAll(); $('recogHint').textContent=`识别到 ${state.count} 个部件`; }, 20);
+}
+
+/* ---------- 自动检测源尺寸 ---------- */
+function autoDetectSrcSize(natW,natH){
+  const pxPerMm=state.dpi/25.4;
+  const tol=5;
+  // 第一轮：直接匹配（宽对宽、高对高）
+  for(const [key,p] of Object.entries(PRESETS)){
+    const expW=Math.round(p.w*10*pxPerMm), expH=Math.round(p.h*10*pxPerMm);
+    if(Math.abs(natW-expW)<=tol && Math.abs(natH-expH)<=tol){
+      selectSeg('srcPresets','src',key); return;
+    }
+  }
+  // 第二轮：转置匹配（宽对高、高对宽，可能旋转过）
+  for(const [key,p] of Object.entries(PRESETS)){
+    const expW=Math.round(p.w*10*pxPerMm), expH=Math.round(p.h*10*pxPerMm);
+    if(Math.abs(natW-expH)<=tol && Math.abs(natH-expW)<=tol){
+      selectSeg('srcPresets','src',key); return;
+    }
+  }
 }
 
 /* ---------- UI 绑定 ---------- */
