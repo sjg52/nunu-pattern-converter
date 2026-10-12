@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>努努图纸部件识别排版 · 输出图片</title>
+<style>
+:root{
+  --bg:#f6f1e8; --card:#fff; --ink:#3d3630; --mut:#8a7f73;
+  --acc:#d96f4e; --acc-d:#b85a3c; --line:#eee2d3; --ok:#3e8e5a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding-bottom:60px}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px}
+header.top{background:linear-gradient(135deg,#d96f4e,#c95a3f);color:#fff;padding:26px 0 22px;margin-bottom:22px}
+header.top h1{font-size:22px;font-weight:700;letter-spacing:.5px}
+header.top p{opacity:.92;font-size:13.5px;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(80,50,20,.06)}
+.step-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
+.step-head h2{font-size:16.5px;font-weight:700}
+.step-head .hint{font-size:12.5px;color:var(--mut);margin-left:auto}
+.field-label{font-size:13px;color:var(--mut);margin:14px 0 6px;font-weight:600}
+.field-label:first-of-type{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{border:1px solid #ddd0c0;background:#fff;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
+.seg button:hover{border-color:var(--acc);color:var(--acc)}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.numrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.numrow input[type=number]{width:92px;padding:8px 10px;border:1px solid #ddd0c0;border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink)}
+.numrow input[type=number]:focus{outline:2px solid #f0c4b3;border-color:var(--acc)}
+.numrow .x{color:var(--mut)}
+.numrow .unit{font-size:13px;color:var(--mut)}
+#uploadZone{border:2px dashed #d8c9b8;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .15s;color:var(--mut);font-size:14px}
+#uploadZone:hover,#uploadZone.drag{border-color:var(--acc);background:#fdf8f2;color:var(--acc)}
+#uploadZone .big{font-size:15px;color:var(--ink);font-weight:600;margin-bottom:4px}
+#uploadPreview{display:none;align-items:center;gap:16px;margin-top:14px}
+#uploadPreview img{max-width:130px;max-height:130px;border:1px solid var(--line);border-radius:10px;object-fit:contain;background:#faf7f2;padding:4px}
+#uploadMeta{font-size:13px;color:var(--mut)}
+#uploadMeta b{color:var(--ink)}
+#btnChangeImg{margin-top:6px;border:none;background:none;color:var(--acc);cursor:pointer;font-size:13px;text-decoration:underline;padding:0;font-family:inherit}
+select,input[type=number]{padding:7px 10px;border:1px solid #ddd0c0;border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+.btn{border:none;border-radius:11px;padding:13px 26px;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn.primary{background:var(--acc);color:#fff}
+.btn.primary:hover{background:var(--acc-d)}
+.btn.primary:disabled{background:#d9c8bc;cursor:not-allowed}
+.btn.ghost{border:1px solid #ddd0c0;background:#fff;color:var(--ink)}
+.btn.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);background:#3d3630;color:#fff;padding:11px 22px;border-radius:999px;font-size:14px;opacity:0;transition:all .3s;z-index:99;max-width:86vw}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.err{color:#c04b3a;font-size:13px;margin-top:8px;display:none}
+.badge{display:inline-block;font-size:12px;font-weight:600;color:#c04b3a;background:#fbe9e5;border-radius:6px;padding:2px 8px;margin-left:6px}
+#markedWrap{margin-top:12px;text-align:center;display:none}
+#markedCanvas{max-width:100%;max-height:340px;border:1px solid var(--line);border-radius:10px;background:#fff;image-rendering:auto}
+#markedNote{font-size:12.5px;color:var(--mut);margin-top:6px}
+#detWrap{display:none}
+#detWrap details{background:#faf7f2;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+#detWrap details summary{cursor:pointer;font-size:13px;color:var(--mut);font-weight:600}
+#detWrap .numrow{margin-top:8px}
+#resultMeta{font-size:14px;color:var(--mut);margin-bottom:12px}
+#resultMeta b{color:var(--ink)}
+#pagesGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.pageCell{text-align:center;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+.pageCell canvas{max-width:100%;max-height:320px;border:1px solid #eee;background:#fff;border-radius:6px}
+.pageCell .cap{font-size:12.5px;color:var(--mut);margin-top:6px}
+#emptyHint{color:var(--mut);font-size:14px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>努努图纸部件识别排版</h1>
+    <p>自动识别图纸部件 → 保持原尺寸 → 在目标纸张内排版 · 部件过多自动分页 · 输出 PNG</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 步骤 1：上传 + 源尺寸 -->
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num">1</span><h2>上传图纸，确认源尺寸</h2>
+      <span class="hint">源尺寸 = 整张图纸对应的实际物理尺寸</span>
+    </div>
+    <div id="uploadZone">
+      <div class="big">点击或拖入图纸图片</div>
+      <div>支持 PNG / JPG / WebP，图片不会上传，仅在本机处理</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+    <div id="uploadPreview">
+      <img id="previewImg" alt="图纸预览">
+      <div>
+        <div id="uploadMeta"></div>
+        <button id="btnChangeImg" type="button">重新选择图片</button>
+      </div>
+    </div>
+    <div class="err" id="imgErr"></div>
+
+    <div class="field-label">图纸设计的实际尺寸（源尺寸）</div>
+    <div class="seg" id="srcPresets">
+      <button data-v="nunu" class="on">35×35 cm</button>
+      <button data-v="a4p">A4 竖版</button>
+      <button data-v="a4l">A4 横版</button>
+      <button data-v="a3p">A3 竖版</button>
+      <button data-v="a3l">A3 横版</button>
+      <button data-v="custom">自定义</button>
+    </div>
+    <div class="numrow" style="margin-top:10px">
+      宽 <input type="number" id="srcW" value="35" min="0.1" max="1000" step="0.1"> <span class="unit">cm</span>
+      <span class="x">×</span>
+      高 <input type="number" id="srcH" value="35" min="0.1" max="1000" step="0.1"> <span class="unit">cm</span>
+    </div>
+  </section>
+
+  <!-- 步骤 2：识别 -->
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num">2</span><h2>自动识别部件</h2>
+      <span class="hint" id="recogHint">等待上传图片…</span>
+    </div>
+    <div id="detWrap">
+      <div id="markedWrap"><canvas id="markedCanvas"></canvas><div id="markedNote"></div></div>
+      <details>
+        <summary>识别参数（高级）</summary>
+        <div class="numrow">
+          背景容差（与底色距离）
+          <input type="number" id="bgTol" value="30" min="1" max="100" step="1">
+        </div>
+        <div class="numrow">
+          最小部件面积（像素）
+          <input type="number" id="minArea" value="300" min="1" max="100000" step="50">
+        </div>
+        <div class="numrow">
+          <button class="btn ghost" id="btnReDetect" type="button">重新识别</button>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- 步骤 3：目标排版 -->
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num">3</span><h2>目标纸张与排版</h2>
+      <span class="hint">部件保持原物理尺寸，不缩放</span>
+    </div>
+    <div class="field-label">目标纸张尺寸</div>
+    <div class="seg" id="tgtPresets">
+      <button data-v="nunu">35×35 cm</button>
+      <button data-v="a4p">A4 竖版</button>
+      <button data-v="a4l" class="on">A4 横版</button>
+      <button data-v="a3p">A3 竖版</button>
+      <button data-v="a3l">A3 横版</button>
+      <button data-v="custom">自定义</button>
+    </div>
+    <div class="numrow" style="margin-top:10px">
+      宽 <input type="number" id="tgtW" value="29.7" min="0.1" max="1000" step="0.1"> <span class="unit">cm</span>
+      <span class="x">×</span>
+      高 <input type="number" id="tgtH" value="21" min="0.1" max="1000" step="0.1"> <span class="unit">cm</span>
+    </div>
+
+    <div class="field-label">输出分辨率（DPI）</div>
+    <div class="seg" id="dpiSel">
+      <button data-v="150">150</button>
+      <button data-v="300" class="on">300</button>
+      <button data-v="600">600</button>
+    </div>
+
+    <div class="field-label">部件间距</div>
+    <div class="numrow">
+      <input type="number" id="gapMm" value="3" min="0" max="50" step="1"> <span class="unit">mm</span>
+    </div>
+  </section>
+
+  <!-- 步骤 4：结果 -->
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num" style="background:#8a7f73">＝</span><h2>排版结果</h2>
+      <span class="hint" id="ratioBadge"></span>
+    </div>
+    <div id="emptyHint">请先上传图纸图片。</div>
+    <div id="resultMeta" style="display:none"></div>
+    <div id="pagesGrid"></div>
+    <div class="actions">
+      <button class="btn primary" id="btnPng" disabled>下载全部页面（PNG）</button>
+      <button class="btn ghost" id="btnAll" disabled style="display:none"></button>
+    </div>
+  </section>
+
+</div>
+
+<footer>纯本地工具 · 图片不上传服务器 · 建议使用 Chrome / Edge 浏览器</footer>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const f1=n=>{const v=Math.round(n*10)/10;return v%1===0?v.toFixed(0):v.toFixed(1)};
+const f2=n=>Math.round(n*100)/100;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+let toastTimer=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+function debounce(fn,ms){let h;return(...a)=>{clearTimeout(h);h=setTimeout(()=>fn(...a),ms);};}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+const PRESETS={
+  nunu:{w:35,h:35,label:'35×35 cm'},
+  a4p:{w:21,h:29.7,label:'A4 竖版'},
+  a4l:{w:29.7,h:21,label:'A4 横版'},
+  a3p:{w:29.7,h:42,label:'A3 竖版'},
+  a3l:{w:42,h:29.7,label:'A3 横版'},
+};
+const PALETTE=['#d96f4e','#3e8e5a','#3a7bd5','#e0a030','#9b59b6','#e74c3c','#16a085','#2980b9'];
+
+const state={
+  img:null,imgName:'',
+  srcPreset:'nunu',srcW:35,srcH:35,
+  tgtPreset:'a4l',tgtW:29.7,tgtH:21,
+  dpi:300,gapMm:3,
+  bgTol:30,minArea:300,
+  parts:[],pagesData:[],layoutMeta:null,count:0,busy:false,
+};
+
+/* ---------- 部件识别（边缘洪泛填充背景 + 形状掩码提取） ---------- */
+function recognize(){
+  if(!state.img) return;
+  state.busy=true;
+  const natW=state.img.naturalWidth, natH=state.img.naturalHeight;
+  const maxDim=1400;
+  const scale=Math.min(1, maxDim/Math.max(natW,natH));
+  const W=Math.max(1,Math.round(natW*scale));
+  const H=Math.max(1,Math.round(natH*scale));
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  ctx.drawImage(state.img,0,0,W,H);
+  let data;
+  try{ data=ctx.getImageData(0,0,W,H).data; }
+  catch(e){ state.busy=false; state.parts=[]; state.count=0; recomputeLayout(); return; }
+
+  const bgTol=state.bgTol, minArea=state.minArea;
+  const N=W*H;
+
+  /* 1) 采样背景色：取四边像素的中位 RGB（抗干扰） */
+  const step=Math.max(1,(Math.max(W,H)/200|0));
+  const rs=[],gs=[],bs=[];
+  for(let x=0;x<W;x+=step){let p=x;            rs.push(data[p*4]);gs.push(data[p*4+1]);bs.push(data[p*4+2]);
+                            p=(H-1)*W+x;       rs.push(data[p*4]);gs.push(data[p*4+1]);bs.push(data[p*4+2]);}
+  for(let y=0;y<H;y+=step){let p=y*W;           rs.push(data[p*4]);gs.push(data[p*4+1]);bs.push(data[p*4+2]);
+                            p=y*W+W-1;          rs.push(data[p*4]);gs.push(data[p*4+1]);bs.push(data[p*4+2]);}
+  rs.sort((a,b)=>a-b);gs.sort((a,b)=>a-b);bs.sort((a,b)=>a-b);
+  const mid=rs.length>>1;
+  const bgR=rs[mid],bgG=gs[mid],bgB=bs[mid];
+  const tol2=bgTol*bgTol;
+
+  /* light 掩码：与采样背景色的欧氏距离 ≤ bgTol 或透明 */
+  const light=new Uint8Array(N);
+  for(let i=0;i<N;i++){
+    const j=i*4, r=data[j], g=data[j+1], b=data[j+2], a=data[j+3];
+    const dr=r-bgR,dg=g-bgG,db=b-bgB;
+    light[i]=(a<8)||(dr*dr+dg*dg+db*db<=tol2)?1:0;
+  }
+
+  /* 2) 边缘洪泛填充：只有与图像边缘连通的近白才判为背景，
+   *    内部近白填充（如脸部肤色 246-254）保留为前景，防止过分割 */
+  const bg=new Uint8Array(N);
+  const fq=new Int32Array(N);
+  let qh=0,qt=0;
+  for(let x=0;x<W;x++){
+    const t=x, b2=(H-1)*W+x;
+    if(light[t]&&!bg[t]){bg[t]=1;fq[qt++]=t;}
+    if(light[b2]&&!bg[b2]){bg[b2]=1;fq[qt++]=b2;}
+  }
+  for(let y=0;y<H;y++){
+    const l=y*W, r=y*W+W-1;
+    if(light[l]&&!bg[l]){bg[l]=1;fq[qt++]=l;}
+    if(light[r]&&!bg[r]){bg[r]=1;fq[qt++]=r;}
+  }
+  while(qh<qt){
+    const p=fq[qh++]; const x=p%W, y=(p/W)|0;
+    if(x>0&&light[p-1]&&!bg[p-1]){bg[p-1]=1;fq[qt++]=p-1;}
+    if(x<W-1&&light[p+1]&&!bg[p+1]){bg[p+1]=1;fq[qt++]=p+1;}
+    if(y>0&&light[p-W]&&!bg[p-W]){bg[p-W]=1;fq[qt++]=p-W;}
+    if(y<H-1&&light[p+W]&&!bg[p+W]){bg[p+W]=1;fq[qt++]=p+W;}
+  }
+
+  /* 3) 4-邻域连通域标记（跳过边缘连通背景） */
+  const label=new Int32Array(N).fill(-1);
+  const cq=new Int32Array(N);
+  const comps=[];
+  let nextId=0;
+  for(let i=0;i<N;i++){
+    if(bg[i]||label[i]>=0) continue;
+    const id=nextId++;
+    let h2=0,t2=0; cq[t2++]=i; label[i]=id;
+    let minX=W,maxX=-1,minY=H,maxY=-1,area=0;
+    while(h2<t2){
+      const p=cq[h2++]; const x=p%W, y=(p/W)|0; area++;
+      if(x<minX)minX=x; if(x>maxX)maxX=x;
+      if(y<minY)minY=y; if(y>maxY)maxY=y;
+      if(x>0&&!bg[p-1]&&label[p-1]===-1){label[p-1]=id;cq[t2++]=p-1;}
+      if(x<W-1&&!bg[p+1]&&label[p+1]===-1){label[p+1]=id;cq[t2++]=p+1;}
+      if(y>0&&!bg[p-W]&&label[p-W]===-1){label[p-W]=id;cq[t2++]=p-W;}
+      if(y<H-1&&!bg[p+W]&&label[p+W]===-1){label[p+W]=id;cq[t2++]=p+W;}
+    }
+    if(area>=minArea) comps.push({id,minX,minY,maxX,maxY,w:maxX-minX+1,h:maxY-minY+1,area});
+  }
+
+  /* 4) 为每个部件生成形状掩码画布（保留真实形状，背景透明） */
+  const inv=1/scale;
+  const pad=Math.max(1,Math.ceil(2/scale));
+  state.parts=comps.map(c=>{
+    const px0=Math.round(c.minX*inv), py0=Math.round(c.minY*inv);
+    const w0=Math.max(1,Math.round(c.w*inv)), h0=Math.max(1,Math.round(c.h*inv));
+    const x=Math.max(0,px0-pad), y=Math.max(0,py0-pad);
+    const x2=Math.min(natW-1,px0+w0+pad), y2=Math.min(natH-1,py0+h0+pad);
+    const w=x2-x+1, h=y2-y+1;
+
+    // 下采样空间掩码（与全分辨率 bbox 对齐）
+    const dminX=Math.max(0,Math.floor(x*scale));
+    const dminY=Math.max(0,Math.floor(y*scale));
+    const dmaxX=Math.min(W-1,Math.ceil((x+w-1)*scale));
+    const dmaxY=Math.min(H-1,Math.ceil((y+h-1)*scale));
+    const dW=Math.max(1,dmaxX-dminX+1), dH=Math.max(1,dmaxY-dminY+1);
+    const mc=document.createElement('canvas');
+    mc.width=dW; mc.height=dH;
+    const mctx=mc.getContext('2d');
+    const mimg=mctx.createImageData(dW,dH);
+    for(let dy=0;dy<dH;dy++){
+      for(let dx=0;dx<dW;dx++){
+        const lp=(dminY+dy)*W+(dminX+dx);
+        const idx=(dy*dW+dx)*4;
+        if(label[lp]===c.id){
+          mimg.data[idx]=255; mimg.data[idx+1]=255; mimg.data[idx+2]=255; mimg.data[idx+3]=255;
+        } else {
+          mimg.data[idx+3]=0;
+        }
+      }
+    }
+    mctx.putImageData(mimg,0,0);
+
+    // 全分辨率形状画布：源裁剪 + 掩码透明
+    const fc=document.createElement('canvas');
+    fc.width=w; fc.height=h;
+    const fctx=fc.getContext('2d');
+    fctx.drawImage(state.img,x,y,w,h,0,0,w,h);
+    fctx.imageSmoothingEnabled=true;
+    fctx.globalCompositeOperation='destination-in';
+    fctx.drawImage(mc,0,0,dW,dH,0,0,w,h);
+    fctx.globalCompositeOperation='source-over';
+
+    return {x,y,w,h,area:c.area,canvas:fc};
+  });
+  state.count=state.parts.length;
+  state.busy=false;
+  recomputeLayout();
+}
+
+/* ---------- 尺寸换算 + 排样（Shelf 分页，保持原尺寸） ---------- */
+function recomputeLayout(){
+  state.pagesData=[];
+  state.layoutMeta=null;
+  if(!state.img || !state.parts.length){ render(); return; }
+  const natW=state.img.naturalWidth;
+  const pxPerMm=state.dpi/25.4;
+  const srcWmm=Math.max(0.1,state.srcW*10);
+  const outScale=(srcWmm/natW)*pxPerMm;                     // 源 px → 输出 px（保持物理尺寸）
+  const pageWpx=Math.max(1,Math.round(state.tgtW*10*pxPerMm));
+  const pageHpx=Math.max(1,Math.round(state.tgtH*10*pxPerMm));
+  const gap=Math.max(1,Math.round(state.gapMm*pxPerMm));
+  const right=pageWpx-gap, bottom=pageHpx-gap;
+
+  const items=state.parts.map((p,i)=>({
+    i, canvas:p.canvas,
+    w:Math.max(1,Math.round(p.w*outScale)),
+    h:Math.max(1,Math.round(p.h*outScale)),
+  }));
+  items.sort((a,b)=>(b.h-a.h)||(b.w-a.w));
+
+  const pages=[];
+  let cur=null;
+  const newPage=()=>{cur={x:gap,y:gap,shelfH:0,items:[]};pages.push(cur);};
+  newPage();
+
+  for(const it of items){
+    if(cur.x+it.w>right){            // 当前层放不下 → 换层
+      cur.y+=cur.shelfH+gap; cur.x=gap; cur.shelfH=0;
+    }
+    if(cur.y+it.h>bottom){ newPage(); }   // 页满 → 新页
+    it.x=cur.x; it.y=cur.y;
+    cur.x+=it.w+gap;
+    if(it.h>cur.shelfH)cur.shelfH=it.h;
+    cur.items.push(it);
+  }
+
+  state.pagesData=pages;
+  state.layoutMeta={outScale,pageWpx,pageHpx,gap,right,bottom};
+  render();
+}
+
+/* ---------- 渲染 ---------- */
+function render(){
+  renderMarked();
+  renderResult();
+}
+
+function renderMarked(){
+  const wrap=$('markedWrap');
+  if(!state.img || !state.parts.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  const natW=state.img.naturalWidth, natH=state.img.naturalHeight;
+  const s=Math.min(1, 760/Math.max(natW,natH));
+  const cv=$('markedCanvas');
+  cv.width=Math.round(natW*s); cv.height=Math.round(natH*s);
+  const ctx=cv.getContext('2d');
+  ctx.drawImage(state.img,0,0,cv.width,cv.height);
+  const lw=2;
+  state.parts.forEach((p,i)=>{
+    const c=PALETTE[i%PALETTE.length];
+    ctx.strokeStyle=c; ctx.lineWidth=lw;
+    ctx.strokeRect(p.x*s,p.y*s,p.w*s,p.h*s);
+    ctx.fillStyle=c;
+    ctx.font='bold 12px sans-serif';
+    ctx.fillText(String(i+1), Math.max(2,p.x*s+2), Math.max(12,p.y*s+2));
+  });
+  $('markedNote').textContent=`共识别 ${state.count} 个部件（彩色框 + 编号为提取的部件边界）`;
+}
+
+function pageThumbScale(){ const m=state.layoutMeta; return m? Math.min(1, 560/Math.max(m.pageWpx,m.pageHpx)) : 1; }
+
+function renderResult(){
+  const none=$('emptyHint'), meta=$('resultMeta'), grid=$('pagesGrid'), btn=$('btnPng');
+  if(!state.img){ none.style.display='block'; meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent=''; return; }
+  if(!state.parts.length){
+    none.style.display='block';
+    none.textContent='未识别到部件，请在上方“识别参数（高级）”调整阈值或最小面积后重新识别。';
+    meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent='';
+    return;
+  }
+  none.style.display='none';
+  const n=state.pagesData.length;
+  const m=state.layoutMeta;
+  const natW=state.img.naturalWidth, natH=state.img.naturalHeight;
+  meta.style.display='block';
+  meta.innerHTML=`识别到 <b>${state.count}</b> 个部件 · 排版为 <b>${n}</b> 页 `
+    +`（每页 ${m.pageWpx}×${m.pageHpx} px @ ${state.dpi} DPI）<br>`
+    +`目标纸张 <b>${f1(state.tgtW)} × ${f1(state.tgtH)} cm</b>，部件保持原尺寸（缩放系数 ${f2(m.outScale)}）。`;
+
+  // 方向提示
+  const imgAsp=natW/natH, srcAsp=state.srcW/Math.max(0.001,state.srcH);
+  const mismatch=Math.abs(imgAsp-srcAsp)/Math.max(0.001,srcAsp);
+  $('ratioBadge').innerHTML = mismatch>0.05
+    ? `<span class="badge">源尺寸方向与图片不一致，可能导致比例偏差</span>` : '';
+
+  // 缩略图
+  grid.innerHTML='';
+  const canvases=[];
+  state.pagesData.forEach((page,pi)=>{
+    const cell=document.createElement('div'); cell.className='pageCell';
+    const cv=renderThumb(page);
+    cell.appendChild(cv);
+    const cap=document.createElement('div'); cap.className='cap';
+    cap.textContent = n>1 ? `第 ${pi+1} 页 · ${page.items.length} 个部件` : `${page.items.length} 个部件`;
+    cell.appendChild(cap);
+    grid.appendChild(cell);
+    canvases.push(cv);
+  });
+  btn.disabled=false;
+}
+
+function renderThumb(page){
+  const m=state.layoutMeta;
+  const s=pageThumbScale();
+  const cv=document.createElement('canvas');
+  cv.width=Math.max(1,Math.round(m.pageWpx*s)); cv.height=Math.max(1,Math.round(m.pageHpx*s));
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  for(const it of page.items){
+    ctx.drawImage(it.canvas, 0,0,it.canvas.width,it.canvas.height, it.x*s,it.y*s,it.w*s,it.h*s);
+  }
+  return cv;
+}
+
+function renderPageFull(page){
+  const m=state.layoutMeta;
+  const cv=document.createElement('canvas');
+  cv.width=m.pageWpx; cv.height=m.pageHpx;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  for(const it of page.items){
+    ctx.drawImage(it.canvas, 0,0,it.canvas.width,it.canvas.height, it.x,it.y,it.w,it.h);
+  }
+  return cv;
+}
+
+function fileName(idx,n){
+  const base=(state.imgName.replace(/\.[^.]+$/,'')||'图纸');
+  const tgt=`${f1(state.tgtW)}x${f1(state.tgtH)}cm_${state.dpi}dpi`;
+  return n>1 ? `${base}_${tgt}_第${idx+1}页.png` : `${base}_${tgt}.png`;
+}
+
+function downloadAll(){
+  if(!state.pagesData.length){ toast('暂无结果'); return; }
+  const n=state.pagesData.length;
+  state.pagesData.forEach((page,idx)=>{
+    const cv=renderPageFull(page);
+    setTimeout(()=>{
+      cv.toBlob(b=>{
+        if(!b){ toast('第 '+(idx+1)+' 页导出失败'); return; }
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(b);
+        a.download=fileName(idx,n);
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+      },'image/png');
+    }, idx*350);
+  });
+  toast(`已开始下载 ${n} 页 PNG`);
+}
+
+/* ---------- 上传 ---------- */
+const fileInput=$('fileInput');
+$('uploadZone').addEventListener('click',()=>fileInput.click());
+$('btnChangeImg').addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);});
+const uz=$('uploadZone');
+['dragover','dragenter'].forEach(ev=>uz.addEventListener(ev,e=>{e.preventDefault();uz.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>uz.addEventListener(ev,e=>{e.preventDefault();uz.classList.remove('drag');}));
+uz.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)loadFile(f);});
+function loadFile(file){
+  const err=$('imgErr'); err.style.display='none';
+  if(!/^image\//.test(file.type)){ err.textContent='请选择图片文件（PNG / JPG / WebP）'; err.style.display='block'; return; }
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=()=>{
+    state.img=img; state.imgName=file.name||'图纸';
+    $('previewImg').src=url;
+    $('uploadPreview').style.display='flex';
+    $('uploadZone').style.display='none';
+    const kb=file.size>1048576?(file.size/1048576).toFixed(1)+' MB':Math.round(file.size/1024)+' KB';
+    $('uploadMeta').innerHTML=`<b>${escapeHtml(state.imgName)}</b><br>${img.naturalWidth} × ${img.naturalHeight} px · ${kb}`;
+    $('detWrap').style.display='block';
+    $('recogHint').textContent='识别中…';
+    setTimeout(()=>{ recognize(); $('recogHint').textContent=`识别到 ${state.count} 个部件`; }, 20);
+  };
+  img.onerror=()=>{ err.textContent='图片加载失败，请换一张试试'; err.style.display='block'; };
+  img.src=url;
+}
+
+/* ---------- UI 绑定 ---------- */
+function selectSeg(boxId,presetKey,v){
+  const box=$(boxId);
+  box.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  state[presetKey+'Preset']=v;
+  const p=PRESETS[v];
+  if(p){ state[presetKey+'W']=p.w; state[presetKey+'H']=p.h; $(presetKey+'W').value=p.w; $(presetKey+'H').value=p.h; }
+}
+function markCustom(boxId,presetKey){
+  const w=state[presetKey+'W'], h=state[presetKey+'H'];
+  const found=Object.keys(PRESETS).find(k=>Math.abs(PRESETS[k].w-w)<0.05&&Math.abs(PRESETS[k].h-h)<0.05);
+  const sel=found||'custom';
+  $(boxId).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===sel));
+  state[presetKey+'Preset']=sel;
+}
+function bindSeg(boxId,presetKey){
+  $(boxId).addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn) return;
+    selectSeg(boxId,presetKey,btn.dataset.v);
+    recomputeLayout();
+  });
+}
+function bindNum(boxId,presetKey,key,onChange){
+  $(key).addEventListener('input',()=>{
+    state[key]=parseFloat($(key).value)||0;
+    markCustom(boxId,presetKey);
+    onChange();
+  });
+}
+
+bindSeg('srcPresets','src');
+bindSeg('tgtPresets','tgt');
+bindNum('srcPresets','src','srcW',recomputeLayout);
+bindNum('srcPresets','src','srcH',recomputeLayout);
+bindNum('tgtPresets','tgt','tgtW',recomputeLayout);
+bindNum('tgtPresets','tgt','tgtH',recomputeLayout);
+
+function bindDpi(){
+  $('dpiSel').addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn) return;
+    $('dpiSel').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
+    state.dpi=parseInt(btn.dataset.v,10);
+    recomputeLayout();
+  });
+}
+bindDpi();
+
+$('gapMm').addEventListener('input',()=>{ state.gapMm=parseFloat($('gapMm').value)||0; recomputeLayout(); });
+$('bgTol').addEventListener('input',()=>{ state.bgTol=parseFloat($('bgTol').value)||30; });
+$('minArea').addEventListener('input',()=>{ state.minArea=parseInt($('minArea').value,10)||300; });
+$('btnReDetect').addEventListener('click',()=>{
+  if(!state.img) return;
+  $('recogHint').textContent='识别中…';
+  recognize();
+  $('recogHint').textContent=`识别到 ${state.count} 个部件`;
+});
+$('btnPng').addEventListener('click',downloadAll);
+
+window.__testHooks={
+  state,
+  recognize,
+  recomputeLayout,
+  renderPageFull,
+  summarize(){
+    return JSON.stringify({
+      parts: state.parts.length,
+      pages: state.pagesData.length,
+      outScale: state.layoutMeta? Math.round(state.layoutMeta.outScale*100000)/100000 : null,
+      pageWpx: state.layoutMeta? state.layoutMeta.pageWpx : null,
+      pageHpx: state.layoutMeta? state.layoutMeta.pageHpx : null,
+      perPage: state.pagesData.map(p=>p.items.length),
+      bboxes: state.parts.slice(0,40).map(p=>({x:p.x,y:p.y,w:p.w,h:p.h})),
+      masked: state.parts.slice(0,5).map(p=>!!p.canvas),
+      overflow: state.pagesData.map(p=>p.items.filter(it=>it.x<0||it.y<0||it.x+it.w>state.layoutMeta.pageWpx||it.y+it.h>state.layoutMeta.pageHpx).length),
+    });
+  }
+};
+
+render();
+</script>
+</body>
+</html>
