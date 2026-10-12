@@ -377,7 +377,7 @@ function recomputeLayout(){
   const baseItems=state.parts.map((p,i)=>{
     const s=(srcWmm/p.srcNatW)*pxPerMm;
     const w=Math.max(1,Math.round(p.w*s)), h=Math.max(1,Math.round(p.h*s));
-    const maskInfo=createMask(p.canvas,200);
+    const maskInfo=createMask(p.canvas,150);
     return { i, canvas:p.canvas, w, h, maskInfo };
   });
 
@@ -386,10 +386,8 @@ function recomputeLayout(){
     (a,b)=>(b.w*b.h)-(a.w*a.h),           // 面积降序
     (a,b)=>b.h-a.h,                        // 高度降序
     (a,b)=>b.w-a.w,                        // 宽度降序
-    (a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h), // 最大边降序
-    (a,b)=>(b.w+b.h)-(a.w+a.h),           // 周长降序
   ];
-  const heuristics=['bssf','baf','bl'];
+  const heuristics=['bssf','baf'];
   let best=null;
   function tryPack(items,h){
     const pages=packItems(items,innerW,innerH,gap,h);
@@ -404,22 +402,19 @@ function recomputeLayout(){
       tryPack(items,h);
     }
   }
-  // 随机排列搜索
-  for(let iter=0;iter<300;iter++){
+  // 随机排列搜索（少量尝试）
+  for(let iter=0;iter<20;iter++){
     const items=baseItems.map(it=>({...it,x:0,y:0}));
     for(let i=items.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [items[i],items[j]]=[items[j],items[i]];
     }
-    for(const h of heuristics) tryPack(items,h);
+    tryPack(items,'bssf');
   }
   // 形状感知排样（允许边界框重叠但检测像素级碰撞）
-  // 多排序尝试，选页数最少
   const maskSorts=[
     (a,b)=>(b.w*b.h)-(a.w*a.h),
     (a,b)=>b.h-a.h,
-    (a,b)=>b.w-a.w,
-    (a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h),
   ];
   for(const cmp of maskSorts){
     const items=baseItems.map(it=>({...it,x:0,y:0}));
@@ -502,14 +497,19 @@ function maskCollide(a,ax,ay,b,bx,by,gap){
   if(ox1>=ox2||oy1>=oy2) return false;
   const stepAx=a.w/am.mw, stepAy=a.h/am.mh;
   const invBw=bm.mw/b.w, invBh=bm.mh/b.h;
-  for(let my=0;my<am.mh;my++){
+  // 只遍历 a 的 mask 中与 b 重叠的区域
+  const mxStart=Math.max(0,Math.floor((ox1-ax)/stepAx));
+  const mxEnd=Math.min(am.mw-1,Math.ceil((ox2-ax)/stepAx));
+  const myStart=Math.max(0,Math.floor((oy1-ay)/stepAy));
+  const myEnd=Math.min(am.mh-1,Math.ceil((oy2-ay)/stepAy));
+  for(let my=myStart;my<=myEnd;my++){
+    const row=my*am.mw;
     const y0=ay+my*stepAy, y1=y0+stepAy;
     if(y1<oy1||y0>=oy2) continue;
-    for(let mx=0;mx<am.mw;mx++){
-      if(!am.mask[my*am.mw+mx]) continue;
+    for(let mx=mxStart;mx<=mxEnd;mx++){
+      if(!am.mask[row+mx]) continue;
       const x0=ax+mx*stepAx, x1=x0+stepAx;
       if(x1<ox1||x0>=ox2) continue;
-      // 检查该 mask 单元的四个角是否落在 b 的占用区域
       const pts=[[x0,y0],[x1,y0],[x0,y1],[x1,y1]];
       for(const [px,py] of pts){
         if(px<ox1||px>=ox2||py<oy1||py>=oy2) continue;
@@ -543,7 +543,8 @@ function findMaskPos(it,placed,innerW,innerH,gap){
     cands.push({x:p.x,y:p.y+p.h+gap});
     cands.push({x:p.x+p.w+gap,y:p.y+p.h+gap});
   }
-  const step=Math.max(20,Math.round(Math.min(it.w,it.h)/8));
+  // 粗网格扫描（步长较大，减少候选数）
+  const step=Math.max(40,Math.round(Math.min(it.w,it.h)/5));
   for(let y=0;y+it.h<=innerH;y+=step){
     for(let x=0;x+it.w<=innerW;x+=step){
       cands.push({x,y});
@@ -554,14 +555,14 @@ function findMaskPos(it,placed,innerW,innerH,gap){
   for(const c of cands){
     if(c.x<0||c.y<0) continue;
     if(c.x+it.w>innerW||c.y+it.h>innerH) continue;
-    const key=c.x+','+c.y;
+    const key=(c.x<<16)|c.y;
     if(seen.has(key)) continue; seen.add(key);
     let ok=true;
     for(const p of placed){
       if(maskCollide(it,c.x,c.y,p,p.x,p.y,gap)){ ok=false; break; }
     }
     if(!ok) continue;
-    // 紧凑度评分：放置后所有部件的总边界框面积
+    // 紧凑度评分
     let minX=c.x,minY=c.y,maxX=c.x+it.w,maxY=c.y+it.h;
     for(const p of placed){
       if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y;
