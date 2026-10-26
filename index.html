@@ -68,6 +68,40 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .pageCell canvas{max-width:100%;max-height:320px;border:1px solid #eee;background:#fff;border-radius:6px}
 .pageCell .cap{font-size:12.5px;color:var(--mut);margin-top:6px}
 #emptyHint{color:var(--mut);font-size:14px}
+
+/* 生成排版按钮栏 + 结果过期提示 */
+#genBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+#genBar .btn{padding:11px 26px}
+#genHint{font-size:13px;color:var(--mut)}
+#genHint b{color:var(--ink)}
+#staleBar{display:none;align-items:center;gap:8px;background:#fff8e6;border:1px solid #efd7a0;color:#8a6214;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45;margin-bottom:12px}
+#staleBar .ic{font-size:15px;flex:none}
+
+/* 部件清单（识别后可手动删除/恢复） */
+#partTools{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:var(--mut)}
+#partTools .spacer{flex:1}
+#btnRestoreAll{border:1px solid #bcd5e8;background:#fff;color:var(--acc);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
+#btnRestoreAll:hover:not(:disabled){border-color:var(--acc);background:#f0f6fc}
+#btnRestoreAll:disabled{color:#b0c1cf;border-color:var(--line);cursor:not-allowed}
+#partGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:10px;margin-top:10px}
+.partCard{position:relative;border:1px solid var(--line);border-radius:11px;background:#fff;padding:6px;text-align:center;transition:border-color .15s,box-shadow .15s,opacity .15s}
+.partCard:hover{border-color:var(--acc);box-shadow:0 2px 8px rgba(74,144,217,.18)}
+.partCard.hl{border-color:#c04b3a;box-shadow:0 0 0 2px rgba(192,75,58,.16)}
+.partCard .pv{display:flex;align-items:center;justify-content:center;height:72px;border-radius:8px;overflow:hidden;margin-bottom:6px;
+  background-color:#fff;background-image:linear-gradient(45deg,#eef4fb 25%,transparent 25%,transparent 75%,#eef4fb 75%),linear-gradient(45deg,#eef4fb 25%,#fff 25%,#fff 75%,#eef4fb 75%);
+  background-size:12px 12px;background-position:0 0,6px 6px}
+.partCard .pv canvas{max-width:100%;max-height:100%;display:block}
+.partCard .no{font-size:11.5px;font-weight:700;color:var(--ink)}
+.partCard .dim{font-size:11px;color:var(--mut);margin-top:1px}
+.partCard .del{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:#fff;color:#c04b3a;
+  font-size:16px;line-height:20px;text-align:center;padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(40,80,120,.2);transition:all .15s;opacity:0}
+.partCard:hover .del,.partCard.gone .del,.partCard:focus-within .del{opacity:1}
+.partCard .del:hover{background:#c04b3a;color:#fff}
+.partCard.gone{opacity:.5;border-style:dashed;background:#fafbfc}
+.partCard.gone .pv canvas{filter:grayscale(1)}
+.partCard.gone .no{text-decoration:line-through;color:var(--mut)}
+.partCard.gone .del{color:var(--acc);font-size:14px}
+.partCard.gone .del:hover{background:var(--acc);color:#fff}
 </style>
 </head>
 <body>
@@ -75,7 +109,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 <header class="top">
   <div class="wrap">
     <h1>努努排版小工具</h1>
-    <p>自动识别图纸部件 → 保持原尺寸 → 在目标纸张内排版 · 部件过多自动分页 · 输出 PNG</p>
+    <p>自动识别图纸部件 → 手动删减不需要的部件 → 保持原尺寸排版 · 部件过多自动分页 · 输出 PNG</p>
   </div>
 </header>
 
@@ -122,6 +156,12 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     </div>
     <div id="detWrap">
       <div id="markedWrap"><div id="markedCanvasWrap"></div><div id="markedNote"></div></div>
+      <div id="partTools">
+        <span id="partCountHint"></span>
+        <span class="spacer"></span>
+        <button id="btnRestoreAll" type="button" disabled>↺ 恢复全部</button>
+      </div>
+      <div id="partGrid"></div>
       <details>
         <summary>识别参数（高级）</summary>
         <div class="numrow">
@@ -171,6 +211,11 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     <div class="numrow">
       <input type="number" id="gapMm" value="1" min="0" max="50" step="1"> <span class="unit">mm</span>
     </div>
+
+    <div id="genBar">
+      <button class="btn primary" id="btnGen" type="button" disabled>生成排版</button>
+      <span id="genHint">请先上传图纸</span>
+    </div>
   </section>
 
   <!-- 步骤 4：结果 -->
@@ -179,6 +224,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
       <span class="step-num" style="background:#6b7d8e">＝</span><h2>排版结果</h2>
       <span class="hint" id="ratioBadge"></span>
     </div>
+    <div id="staleBar"><span class="ic">⚠</span><span id="staleText"></span></div>
     <div id="emptyHint">请先上传图纸图片。</div>
     <div id="resultMeta" style="display:none"></div>
     <div id="pagesGrid"></div>
@@ -219,20 +265,34 @@ const state={
   dpi:300,gapMm:1,
   bgTol:30,minArea:300,
   parts:[],pagesData:[],layoutMeta:null,count:0,busy:false,
+  dirty:true,packing:false,
+  hoverUid:null,uidSeq:0,
 };
+
+/* 参与排版的部件（未被手动排除的） */
+const activeParts=()=>state.parts.filter(p=>!p.deleted);
+/* uid -> 显示序号（跳过已排除的，保证图纸预览与清单一一对应） */
+function partSeqMap(){
+  const m=new Map(); let n=0;
+  for(const p of state.parts){ if(!p.deleted) m.set(p.uid,++n); }
+  return m;
+}
 
 /* ---------- 部件识别（边缘洪泛填充背景 + 形状掩码提取） ---------- */
 function recognizeAll(){
   if(!state.imgs.length) return;
   state.busy=true;
   state.parts=[];
+  state.hoverUid=null;
   state.imgs.forEach((entry,imgIdx)=>{
     const parts=recognizeOne(entry.img,imgIdx);
+    parts.forEach(p=>{ p.uid=++state.uidSeq; p.deleted=false; });
     state.parts=state.parts.concat(parts);
   });
   state.count=state.parts.length;
   state.busy=false;
-  recomputeLayout();
+  state.dirty=true;
+  render();                    // 部件集合已变，刷新预览图/清单/结果空态，但不排样
 }
 
 function recognizeOne(img,imgIdx){
@@ -362,11 +422,75 @@ function recognizeOne(img,imgIdx){
   });
 }
 
+/* ---------- 手动触发生成：参数/部件变动只置脏，不立即重排 ---------- */
+function markDirty(opt){
+  // 排样开销大（多轮策略 + 像素级碰撞检测），改为用户点「生成排版」时才真正计算
+  state.dirty=true;
+  if(opt&&opt.list) renderPartList();
+  if(!state.pagesData.length) renderResult();   // 尚未生成过：同步结果区空态文案
+  renderGenState();
+}
+
+function renderGenState(){
+  const btn=$('btnGen'), hint=$('genHint'), bar=$('staleBar'), txt=$('staleText'), dl=$('btnPng');
+  if(!btn) return;
+  const hasParts=state.parts.length>0;
+  const hasResult=state.pagesData.length>0;
+  const usable=activeParts().length;
+  const cut=state.parts.length-usable;
+
+  if(state.packing){
+    btn.disabled=true; btn.textContent='排版中…';
+    hint.innerHTML='正在计算排布，请稍候';
+  }else if(!state.imgs.length){
+    btn.disabled=true; btn.textContent='生成排版';
+    hint.innerHTML='请先上传图纸';
+  }else if(!hasParts){
+    btn.disabled=true; btn.textContent='生成排版';
+    hint.innerHTML='未识别到部件';
+  }else if(!usable){
+    btn.disabled=true; btn.textContent='生成排版';
+    hint.innerHTML='所有部件都被排除，请先恢复';
+  }else{
+    btn.disabled=false;
+    btn.textContent=(state.dirty&&!hasResult)?'生成排版':'重新生成排版';
+    if(hasResult&&!state.dirty)      hint.innerHTML=`已生成 <b>${state.pagesData.length}</b> 页`;
+    else if(hasResult)               hint.innerHTML='参数已变更，点此按最新设置重排';
+    else                             hint.innerHTML=`<b>${usable}</b> 个部件待排版`+(cut?`（已排除 ${cut} 个）`:'');
+  }
+
+  // 仅当结果区确实在展示旧结果时，才提示过期（避免与空态提示冲突）
+  const showingOld=hasResult && $('emptyHint') && $('emptyHint').style.display==='none';
+  if(showingOld&&state.dirty){
+    bar.style.display='flex';
+    txt.innerHTML='排版参数或部件已变更，下方仍是<b>上一次的结果</b>。请点「重新生成排版」更新后再下载。';
+    if(dl) dl.disabled=true;
+  }else{
+    bar.style.display='none';
+  }
+}
+
+function requestGenerate(){
+  if(state.packing||state.busy) return;
+  if(!state.imgs.length||!activeParts().length){ toast('没有可排版的部件'); return; }
+  state.packing=true;
+  renderGenState();
+  const raf=(typeof requestAnimationFrame==='function')?requestAnimationFrame:fn=>setTimeout(fn,0);
+  // 先让浏览器画出 loading 态，再执行同步计算，避免界面看起来"卡死"
+  raf(()=>setTimeout(()=>{
+    try{ recomputeLayout(); }
+    catch(err){ console.error(err); toast('排版出错：'+((err&&err.message)||err)); }
+    finally{ state.packing=false; renderGenState(); }
+  },0));
+}
+
 /* ---------- 尺寸换算 + 排样（Shelf 分页，保持原尺寸） ---------- */
 function recomputeLayout(){
+  state.dirty=false;                  // 已按当前参数计算完成
   state.pagesData=[];
   state.layoutMeta=null;
-  if(!state.imgs.length || !state.parts.length){ render(); return; }
+  const usable=activeParts();
+  if(!state.imgs.length || !usable.length){ render(); return; }
   const pxPerMm=state.dpi/25.4;
   const srcWmm=Math.max(0.1,state.srcW*10);
   const pageWpx=Math.max(1,Math.round(state.tgtW*10*pxPerMm));
@@ -374,11 +498,11 @@ function recomputeLayout(){
   const gap=Math.max(1,Math.round(state.gapMm*pxPerMm));
   const innerW=pageWpx-2*gap, innerH=pageHpx-2*gap;
 
-  const baseItems=state.parts.map((p,i)=>{
+  const baseItems=usable.map((p,i)=>{
     const s=(srcWmm/p.srcNatW)*pxPerMm;
     const w=Math.max(1,Math.round(p.w*s)), h=Math.max(1,Math.round(p.h*s));
     const maskInfo=createMask(p.canvas,150);
-    return { i, canvas:p.canvas, w, h, maskInfo };
+    return { i, uid:p.uid, canvas:p.canvas, w, h, maskInfo };
   });
 
   // 多策略尝试，选页数最少的方案
@@ -628,13 +752,16 @@ function maxRectsPlace(it,free,gap,heuristic){
 /* ---------- 渲染 ---------- */
 function render(){
   renderMarked();
+  renderPartList();
   renderResult();
+  renderGenState();
 }
 
 function renderMarked(){
   const wrap=$('markedWrap');
   if(!state.imgs.length || !state.parts.length){ wrap.style.display='none'; return; }
   wrap.style.display='block';
+  const seqMap=partSeqMap();
   const cwrap=$('markedCanvasWrap');
   cwrap.innerHTML='';
   state.imgs.forEach((entry,imgIdx)=>{
@@ -649,17 +776,92 @@ function renderMarked(){
     const ctx=cv.getContext('2d');
     ctx.drawImage(entry.img,0,0,cv.width,cv.height);
     parts.forEach(p=>{
-      const i=state.parts.indexOf(p);
-      const c=PALETTE[i%PALETTE.length];
-      ctx.strokeStyle=c; ctx.lineWidth=2;
-      ctx.strokeRect(p.x*s,p.y*s,p.w*s,p.h*s);
+      const X=p.x*s, Y=p.y*s, Wd=p.w*s, Hd=p.h*s;
+      if(p.deleted){
+        // 已手动排除：淡灰虚线框，不占序号
+        const hot=state.hoverUid===p.uid;
+        ctx.save();
+        ctx.strokeStyle=hot?'#c04b3a':'#b6c3ce';
+        ctx.lineWidth=hot?2.5:1.5;
+        ctx.setLineDash([5,4]);
+        ctx.strokeRect(X,Y,Wd,Hd);
+        ctx.restore();
+        return;
+      }
+      const no=seqMap.get(p.uid);
+      const c=PALETTE[(no-1)%PALETTE.length];
+      const hot=state.hoverUid===p.uid;
+      if(hot){ ctx.save(); ctx.globalAlpha=.22; ctx.fillStyle=c; ctx.fillRect(X,Y,Wd,Hd); ctx.restore(); }
+      ctx.strokeStyle=c; ctx.lineWidth=hot?3.5:2;
+      ctx.strokeRect(X,Y,Wd,Hd);
       ctx.fillStyle=c;
       ctx.font='bold 12px sans-serif';
-      ctx.fillText(String(i+1), Math.max(2,p.x*s+2), Math.max(12,p.y*s+2));
+      ctx.fillText(String(no), Math.max(2,X+2), Math.max(12,Y+2));
     });
     cwrap.appendChild(cv);
   });
-  $('markedNote').textContent=`共识别 ${state.count} 个部件（彩色框 + 编号为提取的部件边界）`;
+  const cut=state.parts.length-seqMap.size;
+  $('markedNote').textContent=`共识别 ${state.parts.length} 个部件`
+    + (cut?`（ ${cut} 个已排除，不在排版结果中 ）`:'')
+    + '（彩色框 + 编号为参与排版的部件；虚线框为已排除）';
+}
+
+/* ---------- 部件清单：识别后可手动排除 / 恢复 ---------- */
+function renderPartList(){
+  const grid=$('partGrid'), tools=$('partTools'), hint=$('partCountHint'), btnR=$('btnRestoreAll');
+  if(!grid) return;
+  if(!state.imgs.length || !state.parts.length){
+    grid.innerHTML=''; tools.style.display='none'; return;
+  }
+  tools.style.display='flex';
+  const seqMap=partSeqMap();
+  const total=state.parts.length, cut=total-seqMap.size;
+  hint.innerHTML = cut
+    ? `<b>${seqMap.size}</b> 个参与排版 · 已手动排除 <b>${cut}</b> 个`
+    : `共 <b>${total}</b> 个部件 · 点卡片右上角 <b>×</b> 可不参与排版（随时恢复）`;
+  btnR.disabled = cut===0;
+
+  grid.innerHTML='';
+  state.parts.forEach(p=>{
+    const cell=document.createElement('div');
+    cell.className='partCard'+(p.deleted?' gone':'');
+    if(!p.deleted && state.hoverUid===p.uid) cell.classList.add('hl');
+    cell.dataset.uid=p.uid;
+
+    const pv=document.createElement('div'); pv.className='pv';
+    const cv=document.createElement('canvas');
+    const sc=Math.min(64/p.canvas.width, 64/p.canvas.height, 1);
+    cv.width=Math.max(1,Math.round(p.canvas.width*sc));
+    cv.height=Math.max(1,Math.round(p.canvas.height*sc));
+    cv.getContext('2d').drawImage(p.canvas,0,0,cv.width,cv.height);
+    pv.appendChild(cv);
+
+    const no=document.createElement('div'); no.className='no';
+    no.textContent = p.deleted ? '已排除' : ('#'+seqMap.get(p.uid));
+
+    const dim=document.createElement('div'); dim.className='dim';
+    const mmPerPx=(state.srcW*10)/Math.max(1,p.srcNatW);
+    dim.textContent=`${f1(p.w*mmPerPx/10)}×${f1(p.h*mmPerPx/10)} cm`;
+
+    const del=document.createElement('button');
+    del.type='button'; del.className='del';
+    del.textContent = p.deleted ? '↺' : '×';
+    del.title = p.deleted ? '恢复该部件，重新参与排版' : '排除该部件，不参与排版';
+    del.setAttribute('aria-label',del.title);
+
+    cell.append(pv,no,dim,del);
+    grid.appendChild(cell);
+  });
+}
+
+function highlightPart(uid){
+  if(state.hoverUid===uid) return;
+  state.hoverUid=uid;
+  renderMarked();
+  const grid=$('partGrid');
+  grid.querySelectorAll('.partCard').forEach(c=>{
+    c.classList.toggle('hl', uid!==null && parseInt(c.dataset.uid,10)===uid && !c.classList.contains('gone'));
+  });
 }
 
 function pageThumbScale(){ const m=state.layoutMeta; return m? Math.min(1, 560/Math.max(m.pageWpx,m.pageHpx)) : 1; }
@@ -667,9 +869,23 @@ function pageThumbScale(){ const m=state.layoutMeta; return m? Math.min(1, 560/M
 function renderResult(){
   const none=$('emptyHint'), meta=$('resultMeta'), grid=$('pagesGrid'), btn=$('btnPng');
   if(!state.imgs.length){ none.style.display='block'; meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent=''; return; }
+  const usable=activeParts();
   if(!state.parts.length){
     none.style.display='block';
     none.textContent='未识别到部件，请在上方“识别参数（高级）”调整阈值或最小面积后重新识别。';
+    meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent='';
+    return;
+  }
+  if(!usable.length){
+    none.style.display='block';
+    none.textContent='所有部件都已被手动排除，请在上方部件清单中点击 ↺ 恢复需要的部件。';
+    meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent='';
+    return;
+  }
+  // 尚未点击「生成排版」：不再自动计算，避免无意义的重排开销
+  if(!state.pagesData.length || !state.layoutMeta){
+    none.style.display='block';
+    none.textContent=`已识别 ${state.parts.length} 个部件（${usable.length} 个待排版），点上方「生成排版」开始计算排布。`;
     meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent='';
     return;
   }
@@ -677,8 +893,11 @@ function renderResult(){
   const n=state.pagesData.length;
   const m=state.layoutMeta;
   const first=state.imgs[0];
+  const cut=state.parts.length-usable.length;
   meta.style.display='block';
-  meta.innerHTML=`识别到 <b>${state.count}</b> 个部件（${state.imgs.length} 张图） · 排版为 <b>${n}</b> 页 `
+  meta.innerHTML=`识别到 <b>${state.parts.length}</b> 个部件（${state.imgs.length} 张图）`
+    + (cut?` · 手动排除 <b>${cut}</b> 个，实际 <b>${usable.length}</b> 个参与排版`:'')
+    + ` · 排版为 <b>${n}</b> 页 `
     +`（每页 ${m.pageWpx}×${m.pageHpx} px @ ${state.dpi} DPI）<br>`
     +`目标纸张 <b>${f1(state.tgtW)} × ${f1(state.tgtH)} cm</b>，部件保持原尺寸（缩放系数 ${f2(m.outScale)}）。`;
 
@@ -701,7 +920,7 @@ function renderResult(){
     grid.appendChild(cell);
     canvases.push(cv);
   });
-  btn.disabled=false;
+  btn.disabled=state.dirty;   // 结果已过期时不允许下载旧图
 }
 
 function renderThumb(page){
@@ -844,7 +1063,7 @@ function bindSeg(boxId,presetKey){
   $(boxId).addEventListener('click',e=>{
     const btn=e.target.closest('button'); if(!btn) return;
     selectSeg(boxId,presetKey,btn.dataset.v);
-    recomputeLayout();
+    markDirty({list:presetKey==='src'});   // 源尺寸影响清单里显示的物理尺寸
   });
 }
 function bindNum(boxId,presetKey,key,onChange){
@@ -857,22 +1076,22 @@ function bindNum(boxId,presetKey,key,onChange){
 
 bindSeg('srcPresets','src');
 bindSeg('tgtPresets','tgt');
-bindNum('srcPresets','src','srcW',recomputeLayout);
-bindNum('srcPresets','src','srcH',recomputeLayout);
-bindNum('tgtPresets','tgt','tgtW',recomputeLayout);
-bindNum('tgtPresets','tgt','tgtH',recomputeLayout);
+bindNum('srcPresets','src','srcW',()=>markDirty({list:true}));
+bindNum('srcPresets','src','srcH',()=>markDirty({list:true}));
+bindNum('tgtPresets','tgt','tgtW',()=>markDirty());
+bindNum('tgtPresets','tgt','tgtH',()=>markDirty());
 
 function bindDpi(){
   $('dpiSel').addEventListener('click',e=>{
     const btn=e.target.closest('button'); if(!btn) return;
     $('dpiSel').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
     state.dpi=parseInt(btn.dataset.v,10);
-    recomputeLayout();
+    markDirty();
   });
 }
 bindDpi();
 
-$('gapMm').addEventListener('input',()=>{ state.gapMm=parseFloat($('gapMm').value)||0; recomputeLayout(); });
+$('gapMm').addEventListener('input',()=>{ state.gapMm=parseFloat($('gapMm').value)||0; markDirty(); });
 $('bgTol').addEventListener('input',()=>{ state.bgTol=parseFloat($('bgTol').value)||30; });
 $('minArea').addEventListener('input',()=>{ state.minArea=parseInt($('minArea').value,10)||300; });
 $('btnReDetect').addEventListener('click',()=>{
@@ -882,16 +1101,62 @@ $('btnReDetect').addEventListener('click',()=>{
   $('recogHint').textContent=`识别到 ${state.count} 个部件`;
 });
 $('btnPng').addEventListener('click',downloadAll);
+$('btnGen').addEventListener('click',requestGenerate);
+
+/* ---------- 部件清单交互：排除 / 恢复 / 悬停定位 ---------- */
+const partGrid=$('partGrid');
+function togglePart(uid){
+  const p=state.parts.find(q=>q.uid===uid);
+  if(!p) return;
+  const seqMap=partSeqMap();
+  const wasNo=seqMap.get(uid);
+  const mmPerPx=(state.srcW*10)/Math.max(1,p.srcNatW);
+  const dim=`${f1(p.w*mmPerPx/10)}×${f1(p.h*mmPerPx/10)} cm`;
+  p.deleted=!p.deleted;
+  state.hoverUid=null;
+  state.dirty=true;
+  render();                          // 只刷新视图（预览图/清单/提示），不重新排样
+  if(p.deleted) toast(`已排除 #${wasNo}（${dim}）· 点「生成排版」才会更新结果`);
+  else toast('已恢复该部件 · 点「生成排版」才会更新结果');
+}
+partGrid.addEventListener('click',e=>{
+  const btn=e.target.closest('.del'); if(!btn) return;
+  const card=btn.closest('.partCard'); if(!card) return;
+  togglePart(parseInt(card.dataset.uid,10));
+});
+partGrid.addEventListener('mouseover',e=>{
+  const card=e.target.closest('.partCard'); if(!card) return;
+  highlightPart(parseInt(card.dataset.uid,10));
+});
+partGrid.addEventListener('focusin',e=>{
+  const card=e.target.closest('.partCard'); if(!card) return;
+  highlightPart(parseInt(card.dataset.uid,10));
+});
+partGrid.addEventListener('mouseleave',()=>highlightPart(null));
+$('btnRestoreAll').addEventListener('click',()=>{
+  let c=0;
+  state.parts.forEach(p=>{ if(p.deleted){ p.deleted=false; c++; } });
+  if(!c) return;
+  state.hoverUid=null;
+  state.dirty=true;
+  render();
+  toast(`已恢复 ${c} 个部件 · 点「生成排版」才会更新结果`);
+});
 
 window.__testHooks={
   state,
   recognizeAll,
   recomputeLayout,
   renderPageFull,
+  markDirty,
+  requestGenerate,
+  render,
   summarize(){
     return JSON.stringify({
-      parts: state.parts.length,
+      parts: activeParts().length,
+      excluded: state.parts.length-activeParts().length,
       pages: state.pagesData.length,
+      dirty: state.dirty,
       outScale: state.layoutMeta? Math.round(state.layoutMeta.outScale*100000)/100000 : null,
       pageWpx: state.layoutMeta? state.layoutMeta.pageWpx : null,
       pageHpx: state.layoutMeta? state.layoutMeta.pageHpx : null,
