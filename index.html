@@ -93,15 +93,27 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .partCard .pv canvas{max-width:100%;max-height:100%;display:block}
 .partCard .no{font-size:11.5px;font-weight:700;color:var(--ink)}
 .partCard .dim{font-size:11px;color:var(--mut);margin-top:1px}
-.partCard .del{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:#fff;color:#c04b3a;
-  font-size:16px;line-height:20px;text-align:center;padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(40,80,120,.2);transition:all .15s;opacity:0}
-.partCard:hover .del,.partCard.gone .del,.partCard:focus-within .del{opacity:1}
-.partCard .del:hover{background:#c04b3a;color:#fff}
-.partCard.gone{opacity:.5;border-style:dashed;background:#fafbfc}
+/* 删除 / 恢复按钮：触摸端必须醒目可点 —— 实心圆 + 白色符号 + 白描边，视觉 30px、触控热区 44px */
+.partCard .del{position:absolute;top:2px;right:2px;width:30px;height:30px;border-radius:50%;
+  border:2px solid #fff;background:#e04b3a;color:#fff;font-size:18px;line-height:26px;font-weight:700;
+  text-align:center;padding:0;cursor:pointer;box-shadow:0 2px 6px rgba(40,80,120,.35);
+  transition:background-color .15s,transform .12s;opacity:1;-webkit-appearance:none;appearance:none}
+/* 把触控热区扩到 44px，不改变视觉尺寸与布局 */
+.partCard .del::before{content:'';position:absolute;left:-7px;top:-7px;right:-7px;bottom:-7px;border-radius:50%}
+.partCard .del:active{transform:scale(.9)}
+/* 仅在鼠标设备（有悬停 + 精确指针）上做「悬停才显示」，触摸端始终可见 */
+@media (hover:hover) and (pointer:fine){
+  .partCard .del{opacity:0}
+  .partCard:hover .del,.partCard:focus-within .del{opacity:1}
+}
+.partCard .del:hover{background:#c03b2a}
+/* 已排除卡片：只淡化内容，按钮保持满不透明，避免「恢复」也看不清 */
+.partCard.gone{border-style:dashed;background:#fafbfc}
+.partCard.gone .pv,.partCard.gone .no,.partCard.gone .dim{opacity:.5}
 .partCard.gone .pv canvas{filter:grayscale(1)}
 .partCard.gone .no{text-decoration:line-through;color:var(--mut)}
-.partCard.gone .del{color:var(--acc);font-size:14px}
-.partCard.gone .del:hover{background:var(--acc);color:#fff}
+.partCard.gone .del{background:var(--acc);font-size:16px}
+.partCard.gone .del:hover{background:var(--acc-d)}
 </style>
 </head>
 <body>
