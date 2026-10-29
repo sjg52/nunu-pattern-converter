@@ -120,23 +120,26 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .sw-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px}
 .hintline{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.65}
 .pal-tabs{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-.pal-tab{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
+.pal-tab{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:4px 10px;font-size:11.5px;cursor:pointer;font-family:inherit;transition:all .15s}
 .pal-tab:hover{border-color:var(--acc);color:var(--acc)}
 .pal-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.pal-vendors{display:flex;flex-direction:column;gap:8px}
-.pal-vendor{border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden}
-.pal-vendor-head{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:#f6f9fc;color:var(--ink);font-family:inherit;padding:10px 13px;cursor:pointer;transition:background .15s}
-.pal-vendor-head:hover{background:#edf4fa}
-.pal-vendor-head:disabled{cursor:default;opacity:.6}
-.pal-vendor-head:disabled:hover{background:#f6f9fc}
-.pal-caret{flex:none;font-size:9px;color:var(--mut);transition:transform .18s}
-.pal-vendor.open .pal-caret{transform:rotate(90deg);color:var(--acc)}
-.pal-vendor-head .pal-name{font-size:14px;font-weight:700}
-.pal-vendor-head .pal-meta{margin-left:auto;font-size:11.5px;color:var(--mut);text-align:right}
-.pal-vendor-body{padding:11px 12px 12px;border-top:1px solid var(--line);background:#fff}
-.pal-name{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.2px}
-.pal-meta{font-size:12px;color:var(--mut)}
-.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:7px;margin-top:11px;max-height:336px;overflow-y:auto;padding-right:2px}
+/* 厂家 = 书页索引贴：小小的彩色标签，点开才带出下面那块面板 */
+.pal-vendors{display:flex;flex-wrap:wrap;align-items:flex-start;gap:9px 14px}
+.pal-vendor{display:flex;flex-direction:column;align-items:flex-start;max-width:100%}
+.pal-vendor.open{flex:1 1 100%;width:100%}
+.pal-tabrow{display:flex;align-items:center;gap:8px;max-width:100%}
+.pal-tab-idx{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 10px;border:1px solid var(--tab-line,#a6c6de);border-radius:6px;background:var(--tab-bg,#dceaf6);color:var(--tab-ink,#2f5972);font-family:inherit;font-size:11.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s,box-shadow .15s}
+.pal-tab-idx:hover{box-shadow:0 1px 5px rgba(40,70,100,.16);border-color:var(--tab-ink,#2f5972)}
+.pal-tab-idx:disabled{cursor:default;opacity:.55}
+.pal-vendor.open .pal-tab-idx{background:var(--tab-on,#c8ddee);border-color:var(--tab-line,#a6c6de);color:var(--tab-ink,#2f5972);border-radius:6px 6px 0 0;height:23px;padding-bottom:1px;box-shadow:none}
+.pal-tab-idx .dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.55;flex:none}
+.pal-tab-count{font-size:11px;color:var(--mut);white-space:nowrap}
+.pal-vendor-body{width:100%;box-sizing:border-box;border:1px solid var(--tab-line,#a6c6de);border-radius:0 9px 9px 9px;background:#fff;padding:11px 12px 12px}
+/* 三个厂家各一个贴纸色 */
+.pal-vendor[data-v="ywsbe"]{--tab-bg:#e4eff8;--tab-on:#c9dff0;--tab-line:#a6c6de;--tab-ink:#2f5972}
+.pal-vendor[data-v="vendor2"]{--tab-bg:#fcece0;--tab-on:#f6d9c2;--tab-line:#e0b696;--tab-ink:#8a5230}
+.pal-vendor[data-v="vendor3"]{--tab-bg:#e6f3e9;--tab-on:#d0e7d6;--tab-line:#a5cdb2;--tab-ink:#31654a}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;margin-top:9px;max-height:300px;overflow-y:auto;padding-right:2px}
 .sw{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;text-align:center;transition:box-shadow .15s}
 .sw:hover{box-shadow:0 2px 8px rgba(40,70,100,.14)}
 .sw .chip{height:32px;display:block;width:100%;background-repeat:no-repeat;background-position:center;background-size:cover}
@@ -294,7 +297,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     </div>
 
     <div class="field-label">① 色卡库</div>
-    <div class="hintline" style="margin-top:0">点击厂家名称展开展示该厂家的色卡；再点一次收起。</div>
+    <div class="hintline" style="margin-top:0">点厂家名称展开色卡，再点一次收起。</div>
     <div id="palLibrary" class="pal-vendors"></div>
 
     <div class="field-label">② 上传参考图并取色</div>
@@ -1600,32 +1603,33 @@ function renderPalLibrary(){
     const has=!!(v.palette&&v.palette.items.length);
     const wrap=document.createElement('div');
     wrap.className='pal-vendor'+(v.open?' open':'');
+    wrap.dataset.v=v.key;
+    const row=document.createElement('div');
+    row.className='pal-tabrow';
     const head=document.createElement('button');
     head.type='button';
-    head.className='pal-vendor-head';
+    head.className='pal-tab-idx';
     head.id=`palHead${vi}`;
+    head.title=v.open?'点击收起':'点击展开';
     head.setAttribute('aria-expanded',v.open?'true':'false');
     if(!has) head.disabled=true;
-    const caret=document.createElement('span');
-    caret.className='pal-caret';
-    caret.textContent='▶';
-    const nm=document.createElement('span');
-    nm.className='pal-name';
-    nm.id=`palName${vi}`;
-    nm.textContent=vendorName(v);
+    const dot=document.createElement('span');
+    dot.className='dot';
+    head.appendChild(dot);
+    head.appendChild(document.createTextNode(vendorName(v)));
     const meta=document.createElement('span');
-    meta.className='pal-meta';
+    meta.className='pal-tab-count';
     meta.id=`palCount${vi}`;
     if(!has) meta.textContent='暂无色卡';
     else{
       const pg=v.pages[v.pageIdx];
-      meta.textContent=v.open
-        ? (pg&&pg.from ? `${pg.label} 号 · ${vendorRangeItems(v).length} 色` : `共 ${v.palette.items.length} 色`)
-        : `共 ${v.palette.items.length} 色`;
+      meta.textContent=(v.open&&pg&&pg.from)
+        ? `${pg.label} 号 · ${vendorRangeItems(v).length} 色`
+        : `${v.palette.items.length} 色`;
     }
-    head.appendChild(caret); head.appendChild(nm); head.appendChild(meta);
     head.addEventListener('click',()=>{ if(!has) return; v.open=!v.open; renderPalLibrary(); });
-    wrap.appendChild(head);
+    row.appendChild(head); row.appendChild(meta);
+    wrap.appendChild(row);
 
     if(v.open&&has){
       const body=document.createElement('div');
