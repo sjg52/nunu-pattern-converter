@@ -114,6 +114,40 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .partCard.gone .no{text-decoration:line-through;color:var(--mut)}
 .partCard.gone .del{background:var(--acc);font-size:16px}
 .partCard.gone .del:hover{background:var(--acc-d)}
+
+/* ---------- 配色推荐（色卡匹配） ---------- */
+.btn.mini{padding:6px 12px;font-size:12.5px;border-radius:9px}
+.sw-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px}
+.hintline{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.65}
+.pal-tabs{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.pal-tab{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
+.pal-tab:hover{border-color:var(--acc);color:var(--acc)}
+.pal-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:11px;max-height:290px;overflow-y:auto;padding-right:2px}
+.sw{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;text-align:center}
+.sw .chip{height:40px;display:block;width:100%}
+.sw .code{font-size:11px;padding:3px 2px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw input.ce{width:100%;border:none;border-top:1px solid var(--line);font-size:11px;text-align:center;padding:3px 1px;font-family:inherit;color:var(--ink);background:#fff}
+.sw input.ce:focus{outline:2px solid #b3d0e8;outline-offset:-2px}
+.pick-canvas{border:1px solid var(--line);border-radius:10px;cursor:crosshair;max-width:100%;background:#fff;display:block;margin-bottom:6px}
+.chipbox{width:74px;height:46px;border-radius:9px;border:1px solid var(--line);flex:none}
+.match-item{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-top:8px;background:#fff}
+.match-item.top1{border-color:var(--ok);box-shadow:0 0 0 2px rgba(62,142,90,.14)}
+.match-item .rank{width:23px;height:23px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.match-item.top1 .rank{background:var(--ok)}
+.match-item .chip{width:52px;height:38px;border-radius:7px;border:1px solid var(--line);flex:none}
+.match-item .info{flex:1;min-width:0}
+.match-item .code{font-size:13.5px;font-weight:700;line-height:1.35}
+.match-item .sub{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Consolas,monospace}
+.match-item .de{font-size:12.5px;font-weight:700;color:var(--mut);text-align:right;flex:none;line-height:1.4}
+.match-item .de b{display:block;font-size:15px;color:var(--ink)}
+.paste-box{width:100%;min-height:92px;border:1px solid #bcd5e8;border-radius:9px;padding:8px 10px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--ink);resize:vertical;line-height:1.55}
+.paste-box:focus{outline:2px solid #b3d0e8;border-color:var(--acc)}
+.popmask{position:fixed;inset:0;background:rgba(30,44,58,.42);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
+.popmask .pop{background:#fff;border-radius:14px;padding:18px 20px;max-width:560px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 10px 34px rgba(30,50,70,.26)}
+.popmask h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
+.popmask .pdesc{font-size:12.5px;color:var(--mut);margin-bottom:12px}
+.popact{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
 </style>
 </head>
 <body>
@@ -244,6 +278,41 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
       <button class="btn primary" id="btnPng" disabled>下载全部页面（PNG）</button>
       <button class="btn ghost" id="btnAll" disabled style="display:none"></button>
     </div>
+  </section>
+
+  <!-- 步骤 5：配色推荐 -->
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num" style="background:#8e6bb5">★</span><h2>配色推荐</h2>
+      <span class="hint">点图纸取色，找最接近的色号</span>
+    </div>
+
+    <div class="field-label">① 色卡库</div>
+    <div class="pal-tabs" id="palTabs"></div>
+    <div class="sw-row">
+      <button class="btn ghost mini" id="btnPalImg" type="button">上传色卡图</button>
+      <button class="btn ghost mini" id="btnPalText" type="button">粘贴表格</button>
+      <button class="btn ghost mini" id="btnPalManual" type="button">手动加色</button>
+      <button class="btn ghost mini" id="btnPalRename" type="button">重命名</button>
+      <button class="btn ghost mini" id="btnPalDel" type="button">删除色卡</button>
+      <input type="file" id="palImgInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+    </div>
+    <div class="hintline">色卡保存在本机浏览器，不上传服务器。没有色卡时默认用内置 48 色常用色。</div>
+    <div id="palSwatches" class="swatches"></div>
+    <div id="palCount" class="hintline"></div>
+
+    <div class="field-label">② 上传参考图并取色</div>
+    <div id="pickWrap"></div>
+    <input type="file" id="pickImgInput" accept="image/png,image/jpeg,image/webp" multiple style="display:none">
+    <div class="sw-row">
+      <span class="chipbox" id="pickedChip" style="background:#e8edf2"></span>
+      <input type="color" id="pickedColor" value="#c8863c" style="width:52px;height:46px;border:1px solid #bcd5e8;border-radius:9px;background:#fff;padding:2px;cursor:pointer">
+      <button class="btn primary mini" id="btnMatch" type="button">匹配色号</button>
+      <span class="hintline" id="pickedHex" style="margin-top:0"></span>
+    </div>
+
+    <div class="field-label">③ 推荐色号</div>
+    <div id="matchResult"><div class="hintline">在图纸上点一下想配的颜色（比如头发），再点「匹配色号」。</div></div>
   </section>
 
 </div>
@@ -1181,7 +1250,698 @@ window.__testHooks={
   }
 };
 
+/* ==================================================================
+   配色推荐：色卡库 + CIEDE2000 色差匹配
+   ================================================================== */
+const DEG=Math.PI/180;
+const rgbHex=c=>'#'+[c.r,c.g,c.b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
+function hex2rgb(h){const m=/^#?([0-9a-fA-F]{6})$/.exec(String(h).trim());if(!m)return null;
+  const n=parseInt(m[1],16);return {r:n>>16&255,g:n>>8&255,b:n&255};}
+
+/* sRGB → CIE Lab（D65） */
+function srgb2lab(r,g,b){
+  const lin=v=>{v/=255;return v>0.04045?Math.pow((v+0.055)/1.055,2.4):v/12.92;};
+  const R=lin(r),G=lin(g),B=lin(b);
+  let X=(R*0.4124564+G*0.3575761+B*0.1804375)/0.95047;
+  let Y=(R*0.2126729+G*0.7151522+B*0.0721750);
+  let Z=(R*0.0193339+G*0.1191920+B*0.9503041)/1.08883;
+  const f=t=>t>0.008856451679?Math.cbrt(t):(7.787037037*t+16/116);
+  X=f(X);Y=f(Y);Z=f(Z);
+  return [116*Y-16,500*(X-Y),200*(Y-Z)];
+}
+function hueDeg(y,x){const d=Math.atan2(y,x)/DEG;return d<0?d+360:d;}
+/* CIEDE2000：最贴近人眼感知的色差公式 */
+function ciede2000(p,q){
+  const L1=p[0],a1=p[1],b1=p[2],L2=q[0],a2=q[1],b2=q[2];
+  const C1=Math.hypot(a1,b1),C2=Math.hypot(a2,b2),Cb=(C1+C2)/2;
+  const p25=Math.pow(25,7);
+  const G=0.5*(1-Math.sqrt(Math.pow(Cb,7)/(Math.pow(Cb,7)+p25)));
+  const a1p=(1+G)*a1,a2p=(1+G)*a2;
+  const C1p=Math.hypot(a1p,b1),C2p=Math.hypot(a2p,b2);
+  const h1p=hueDeg(b1,a1p),h2p=hueDeg(b2,a2p);
+  const dLp=L2-L1,dCp=C2p-C1p;
+  let dhp=0;
+  if(C1p*C2p!==0){
+    const d=h2p-h1p;
+    dhp=Math.abs(d)<=180?d:(d>180?d-360:d+360);
+  }
+  const dHp=2*Math.sqrt(C1p*C2p)*Math.sin(dhp*DEG/2);
+  const Lbp=(L1+L2)/2,Cbp=(C1p+C2p)/2;
+  let hbp;
+  if(C1p*C2p===0) hbp=h1p+h2p;
+  else if(Math.abs(h1p-h2p)<=180) hbp=(h1p+h2p)/2;
+  else if(h1p+h2p<360) hbp=(h1p+h2p+360)/2;
+  else hbp=(h1p+h2p-360)/2;
+  const T=1-0.17*Math.cos((hbp-30)*DEG)+0.24*Math.cos(2*hbp*DEG)
+        +0.32*Math.cos((3*hbp+6)*DEG)-0.20*Math.cos((4*hbp-63)*DEG);
+  const dTheta=30*Math.exp(-Math.pow((hbp-275)/25,2));
+  const Rc=2*Math.sqrt(Math.pow(Cbp,7)/(Math.pow(Cbp,7)+p25));
+  const Sl=1+(0.015*Math.pow(Lbp-50,2))/Math.sqrt(20+Math.pow(Lbp-50,2));
+  const Sc=1+0.045*Cbp;
+  const Sh=1+0.015*Cbp*T;
+  const Rt=-Math.sin(2*dTheta*DEG)*Rc;
+  return Math.sqrt(Math.pow(dLp/Sl,2)+Math.pow(dCp/Sc,2)+Math.pow(dHp/Sh,2)+Rt*(dCp/Sc)*(dHp/Sh));
+}
+const deToSim=de=>Math.max(0,Math.round(100*Math.exp(-de/12)));
+function deLabel(de){
+  if(de<1) return '几乎无色差';
+  if(de<2) return '非常接近';
+  if(de<5) return '接近';
+  if(de<10) return '相近色';
+  return '差异明显';
+}
+
+/* 固定色卡：思博尔毛绒 1-21
+   色值从实物色卡照片按真实网格提取（每格中心 50% 区域取中位色），
+   未做白平衡，保留照片原色——取色与色卡在同一光线条件下拍摄时误差最小。 */
+const FIXED_PALETTE={id:'__fixed__',name:'思博尔毛绒',builtin:true,items:[
+  {code:'1', r:231,g:230,b:232},{code:'2', r:231,g:227,b:214},{code:'3', r:223,g:213,b:164},
+  {code:'4', r:248,g:191,b:161},{code:'5', r:229,g:161,b:186},{code:'6', r:239,g:127,b:135},
+  {code:'7', r:209,g:66, b:89 },{code:'8', r:255,g:74, b:85 },{code:'9', r:230,g:53, b:116},
+  {code:'10',r:228,g:66, b:120},{code:'11',r:252,g:35, b:56 },{code:'12',r:175,g:1,  b:12 },
+  {code:'13',r:160,g:37, b:46 },{code:'14',r:135,g:24, b:19 },{code:'15',r:254,g:235,b:26 },
+  {code:'16',r:239,g:210,b:195},{code:'17',r:222,g:138,b:44 },{code:'18',r:156,g:139,b:109},
+  {code:'19',r:122,g:53, b:10 },{code:'20',r:72, g:36, b:13 },{code:'21',r:56, g:36, b:25 }
+]};
+
+const PAL_KEY='nunu_palettes_v2';
+let palettes=[], curPalId=null, pickedColor=null, pickImgs=[];
+
+function palList(){ return [FIXED_PALETTE].concat(palettes); }
+function curPal(){ return palList().find(p=>p.id===curPalId)||FIXED_PALETTE; }
+function loadPals(){
+  try{
+    const raw=localStorage.getItem(PAL_KEY);
+    if(raw){
+      const o=JSON.parse(raw);
+      if(o&&Array.isArray(o.palettes)) palettes=o.palettes.filter(p=>p&&Array.isArray(p.items));
+      if(o&&o.curId&&palettes.some(p=>p.id===o.curId)) curPalId=o.curId;
+    }
+  }catch(e){}
+  if(!palList().some(p=>p.id===curPalId)) curPalId=FIXED_PALETTE.id;
+}
+function savePals(){
+  try{ localStorage.setItem(PAL_KEY,JSON.stringify({palettes,curId:curPalId})); }
+  catch(e){ toast('色卡保存失败：浏览器本地存储可能已满'); }
+}
+
+/* ---------- 取色：图像缓存 + 中位色（抗噪） ---------- */
+const PICK_MAX=1600;
+function imgDataOf(entry){
+  if(!entry) return null;
+  if(entry._idat) return entry._idat;
+  const natW=entry.natW,natH=entry.natH;
+  const s=Math.min(1,PICK_MAX/Math.max(natW,natH));
+  const W=Math.max(1,Math.round(natW*s)),H=Math.max(1,Math.round(natH*s));
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(entry.img,0,0,W,H);
+  let d;
+  try{ d=ctx.getImageData(0,0,W,H); }catch(e){ return null; }
+  entry._idat={data:d.data,W,H,s};
+  return entry._idat;
+}
+function medianInBox(data,W,H,cx,cy,rad){
+  const rs=[],gs=[],bs=[];
+  const y0=Math.max(0,cy-rad),y1=Math.min(H-1,cy+rad);
+  const x0=Math.max(0,cx-rad),x1=Math.min(W-1,cx+rad);
+  for(let y=y0;y<=y1;y++){
+    for(let x=x0;x<=x1;x++){
+      const i=(y*W+x)*4;
+      rs.push(data[i]);gs.push(data[i+1]);bs.push(data[i+2]);
+    }
+  }
+  if(!rs.length) return null;
+  const mid=a=>{a.sort((p,q)=>p-q);return a[a.length>>1];};
+  return {r:mid(rs),g:mid(gs),b:mid(bs)};
+}
+function medianColorInRect(data,W,H,x0,y0,x1,y1){
+  x0=clamp(Math.round(x0),0,W-1);y0=clamp(Math.round(y0),0,H-1);
+  x1=clamp(Math.round(x1),0,W-1);y1=clamp(Math.round(y1),0,H-1);
+  const rs=[],gs=[],bs=[];
+  const step=Math.max(1,Math.round(Math.min(Math.abs(x1-x0),Math.abs(y1-y0))/16)||1);
+  for(let y=y0;y<=y1;y+=step){
+    for(let x=x0;x<=x1;x+=step){
+      const i=(y*W+x)*4;
+      rs.push(data[i]);gs.push(data[i+1]);bs.push(data[i+2]);
+    }
+  }
+  if(!rs.length) return null;
+  const mid=a=>{a.sort((p,q)=>p-q);return a[a.length>>1];};
+  return {r:mid(rs),g:mid(gs),b:mid(bs)};
+}
+
+/* 白平衡：把最亮的一批色块当作白点，反向抵消环境偏色 */
+function estimateWhite(items){
+  const sorted=items.map(it=>({it,lum:0.299*it.r+0.587*it.g+0.114*it.b}))
+                    .sort((a,b)=>b.lum-a.lum);
+  const k=Math.max(1,Math.floor(sorted.length*0.12));
+  const w={r:0,g:0,b:0};
+  for(let i=0;i<k;i++){ w.r+=sorted[i].it.r; w.g+=sorted[i].it.g; w.b+=sorted[i].it.b; }
+  return {r:w.r/k,g:w.g/k,b:w.b/k};
+}
+function applyWB(c,w,strength){
+  const k=strength;
+  const f=(v,t)=>{
+    const s=255/Math.max(1,t);
+    return clamp(Math.round(v*(1+k*(s-1))),0,255);
+  };
+  return {r:f(c.r,w.r),g:f(c.g,w.g),b:f(c.b,w.b)};
+}
+
+/* ---------- 取色区 ---------- */
+function paintPickCanvas(cv,entry,mark){
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(entry.img,0,0,cv.width,cv.height);
+  if(mark){
+    ctx.save();
+    ctx.beginPath();ctx.arc(mark.x,mark.y,10,0,Math.PI*2);
+    ctx.strokeStyle='#fff';ctx.lineWidth=3.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(mark.x,mark.y,10,0,Math.PI*2);
+    ctx.strokeStyle='#2c3e50';ctx.lineWidth=1.4;ctx.stroke();
+    ctx.restore();
+  }
+}
+function setPicked(c){
+  pickedColor={r:c.r,g:c.g,b:c.b};
+  const hex=rgbHex(c);
+  $('pickedChip').style.background=hex;
+  $('pickedColor').value=hex;
+  $('pickedHex').textContent=`${hex.toUpperCase()} · RGB(${c.r}, ${c.g}, ${c.b})`;
+}
+/* 参考图独立于上方图纸：配色用的图可以和排版用的图纸不是同一张 */
+function loadPickFiles(files){
+  let n=0;
+  Array.from(files||[]).forEach(f=>{
+    if(!/^image\//.test(f.type)) return;
+    const url=URL.createObjectURL(f);
+    const img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      pickImgs.push({img,natW:img.naturalWidth,natH:img.naturalHeight,name:f.name});
+      n++; renderPickArea();
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); toast('图片读取失败：'+f.name); };
+    img.src=url;
+  });
+}
+function renderPickArea(){
+  const wrap=$('pickWrap');
+  if(!wrap) return;
+  wrap.innerHTML='';
+
+  const bar=document.createElement('div');
+  bar.className='sw-row';
+  bar.style.marginTop='0';
+  const up=document.createElement('button');
+  up.type='button'; up.className='btn ghost mini';
+  up.textContent=pickImgs.length?'换一张参考图':'上传参考图';
+  up.addEventListener('click',()=>$('pickImgInput').click());
+  bar.appendChild(up);
+  if(pickImgs.length){
+    const clr=document.createElement('button');
+    clr.type='button'; clr.className='btn ghost mini';
+    clr.textContent='清除';
+    clr.addEventListener('click',()=>{ pickImgs=[]; renderPickArea(); });
+    bar.appendChild(clr);
+  }
+  const tip=document.createElement('span');
+  tip.className='hintline'; tip.style.marginTop='0';
+  tip.textContent=pickImgs.length
+    ? '在图上点一下要配的颜色（取周围一圈中位色，避噪点）'
+    : '上传娃娃照片 / 图纸 / 布料图都行，和上面排版用的图纸互不干扰';
+  bar.appendChild(tip);
+  wrap.appendChild(bar);
+
+  pickImgs.forEach(entry=>{
+    const s=Math.min(1,430/Math.max(entry.natW,entry.natH));
+    const cv=document.createElement('canvas');
+    cv.className='pick-canvas';
+    cv.width=Math.max(1,Math.round(entry.natW*s));
+    cv.height=Math.max(1,Math.round(entry.natH*s));
+    cv.title='点击吸取该处颜色';
+    let mark=null;
+    cv.addEventListener('click',e=>{
+      const r=cv.getBoundingClientRect();
+      if(!r.width||!r.height) return;
+      const px=(e.clientX-r.left)/r.width*entry.natW;
+      const py=(e.clientY-r.top)/r.height*entry.natH;
+      const rec=imgDataOf(entry);
+      if(!rec){ toast('取色失败，请重试'); return; }
+      const cx=Math.round(px*rec.s),cy=Math.round(py*rec.s);
+      const rad=Math.max(3,Math.round(Math.min(rec.W,rec.H)/90));
+      const c=medianInBox(rec.data,rec.W,rec.H,cx,cy,rad);
+      if(!c){ toast('取色失败，请重试'); return; }
+      setPicked(c);
+      mark={x:cx/rec.s*s,y:cy/rec.s*s};
+      paintPickCanvas(cv,entry,mark);
+    });
+    paintPickCanvas(cv,entry,null);
+    wrap.appendChild(cv);
+  });
+}
+
+/* ---------- 匹配与结果 ---------- */
+function runMatch(){
+  if(!pickedColor){ toast('请先在图纸上点一下取色'); return; }
+  const pal=curPal();
+  if(!pal.items.length){ toast('当前色卡还没有颜色'); return; }
+  const L=srgb2lab(pickedColor.r,pickedColor.g,pickedColor.b);
+  const scored=pal.items.map(it=>{
+    if(!it._lab) it._lab=srgb2lab(it.r,it.g,it.b);
+    return {it,de:ciede2000(L,it._lab)};
+  }).sort((a,b)=>a.de-b.de);
+  const top=scored.slice(0,6);
+  const box=$('matchResult');
+  box.innerHTML='';
+  const head=document.createElement('div');
+  head.className='hintline';
+  head.style.marginTop='0';
+  head.innerHTML=`色卡「${escapeHtml(pal.name)}」共 ${pal.items.length} 色 · 最接近 <b>${escapeHtml(String(top[0].it.code))}</b>（ΔE ${top[0].de.toFixed(1)}）`;
+  box.appendChild(head);
+  top.forEach((s,i)=>{
+    const row=document.createElement('div');
+    row.className='match-item'+(i===0?' top1':'');
+    row.innerHTML=`<div class="rank">${i+1}</div>
+      <span class="chip" style="background:${rgbHex(s.it)}"></span>
+      <div class="info">
+        <div class="code">${escapeHtml(String(s.it.code))}</div>
+        <div class="sub">${rgbHex(s.it).toUpperCase()} · ${deLabel(s.de)}</div>
+      </div>
+      <div class="de"><b>ΔE ${s.de.toFixed(1)}</b>相似 ${deToSim(s.de)}%</div>`;
+    box.appendChild(row);
+  });
+  const foot=document.createElement('div');
+  foot.className='hintline';
+  foot.textContent='ΔE<1 肉眼几乎看不出；1-2 非常接近；>10 属不同颜色。照片与实物存在色差，最终以实物比对为准。';
+  box.appendChild(foot);
+}
+
+/* ---------- 色卡库界面 ---------- */
+function renderPalTabs(){
+  const box=$('palTabs');
+  if(!box) return;
+  box.innerHTML='';
+  palList().forEach(p=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='pal-tab'+(p.id===curPalId?' on':'');
+    b.textContent=p.builtin?`${p.name} · ${p.items.length}色（固定）`:`${p.name} · ${p.items.length}色`;
+    b.addEventListener('click',()=>{ curPalId=p.id; savePals(); renderPalTabs(); renderPalGrid(); });
+    box.appendChild(b);
+  });
+}
+function renderPalGrid(){
+  const box=$('palSwatches'), cnt=$('palCount');
+  if(!box) return;
+  const pal=curPal();
+  box.innerHTML='';
+  pal.items.forEach(it=>{
+    const d=document.createElement('div');
+    d.className='sw';
+    d.innerHTML=`<span class="chip" style="background:${rgbHex(it)}" title="${rgbHex(it)}"></span>
+      <div class="code" title="${escapeHtml(String(it.code))}">${escapeHtml(String(it.code))}</div>`;
+    box.appendChild(d);
+  });
+  cnt.textContent=pal.builtin
+    ? `固定色卡「${pal.name}」共 ${pal.items.length} 色 · 色值取自实物色卡照片，可直接下单。`
+    : `当前色卡「${pal.name}」共 ${pal.items.length} 色。`;
+  const isRef=!!pal.builtin;
+  $('btnPalDel').disabled=isRef;
+  $('btnPalRename').disabled=isRef;
+}
+
+/* ---------- 通用弹窗 ---------- */
+function openPop(title,desc,bodyHTML,mount){
+  const mask=document.createElement('div');
+  mask.className='popmask';
+  mask.innerHTML=`<div class="pop"><h3>${title}</h3><div class="pdesc">${desc}</div><div class="pbody">${bodyHTML}</div></div>`;
+  mask.addEventListener('click',e=>{ if(e.target===mask) mask.remove(); });
+  document.body.appendChild(mask);
+  if(mount) mount(mask.querySelector('.pbody'),mask);
+  return {mask,body:mask.querySelector('.pbody')};
+}
+
+/* ---------- 入口 1：上传色卡照片，框选切格 ---------- */
+function importPalPhoto(file){
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=()=>{ URL.revokeObjectURL(url); openPalSlicer(img); };
+  img.onerror=()=>{ URL.revokeObjectURL(url); toast('图片读取失败'); };
+  img.src=url;
+}
+function openPalSlicer(img){
+  const natW=img.naturalWidth,natH=img.naturalHeight;
+  openPop('从色卡照片切出色块',
+    '在照片上拖一个框，把色卡格子全部框住；再填列数和行数。编号方式按你的色卡实际排布选。',
+    `<div id="slWrap"></div>
+     <div class="sw-row">
+       <span style="font-size:13px">列</span>
+       <input type="number" id="slCols" value="3" min="1" max="30" style="width:66px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
+       <span style="font-size:13px">行</span>
+       <input type="number" id="slRows" value="7" min="1" max="40" style="width:66px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
+       <label style="font-size:12.5px;display:flex;align-items:center;gap:5px;cursor:pointer" title="默认关闭。实测开启后会把亮黄等色推向通道溢出、反而失真，照片本身白平衡正常时不需要开"><input type="checkbox" id="slWB"> 白平衡校正</label>
+       <button class="btn ghost mini" id="slReset" type="button">框选全图</button>
+     </div>
+     <div class="field-label">切出的色块 <span id="slCount" class="hintline" style="display:inline;margin:0"></span></div>
+     <div id="slPreview" class="swatches" style="max-height:210px"></div>
+     <div class="field-label">批量编号</div>
+     <div class="sw-row">
+       <input type="text" id="slShop" placeholder="店铺名，如 思博尔毛绒" style="flex:1;min-width:140px;padding:7px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
+     </div>
+     <div class="sw-row">
+       <span style="font-size:13px">起始号</span>
+       <input type="number" id="slStart" value="1" style="width:70px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
+       <span style="font-size:13px">前缀</span>
+       <input type="text" id="slPrefix" value="" placeholder="可空" style="width:64px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
+       <span style="font-size:13px">位数</span>
+       <input type="number" id="slPad" value="0" min="0" max="4" style="width:60px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
+     </div>
+     <div class="sw-row">
+       <select id="slDir" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
+         <option value="col">先列后行（1-7、8-14、15-21…）</option>
+         <option value="row">先行后列（1-3、4-6、7-9…）</option>
+       </select>
+       <button class="btn ghost mini" id="slApply" type="button">应用编号</button>
+     </div>
+     <div class="popact">
+       <button class="btn primary mini" id="slSave" type="button">保存为色卡</button>
+       <button class="btn ghost mini" id="slCancel" type="button">取消</button>
+     </div>`,
+  body=>{
+    /* 显示用画布（宽度限制 520） */
+    const vs=Math.min(1,520/natW);
+    const cv=document.createElement('canvas');
+    cv.width=Math.max(1,Math.round(natW*vs));
+    cv.height=Math.max(1,Math.round(natH*vs));
+    cv.style.width='100%';cv.style.maxWidth='520px';cv.style.display='block';
+    cv.style.borderRadius='10px';cv.style.cursor='crosshair';cv.style.touchAction='none';
+    body.querySelector('#slWrap').appendChild(cv);
+    const ctx=cv.getContext('2d');
+
+    /* 取样画布（长边 ≤1000） */
+    const ss=Math.min(1,1000/Math.max(natW,natH));
+    const SW=Math.max(1,Math.round(natW*ss)),SH=Math.max(1,Math.round(natH*ss));
+    const sc=document.createElement('canvas');sc.width=SW;sc.height=SH;
+    const sctx=sc.getContext('2d',{willReadFrequently:true});
+    sctx.drawImage(img,0,0,SW,SH);
+    let sdata;
+    try{ sdata=sctx.getImageData(0,0,SW,SH).data; }catch(e){ sdata=null; }
+
+    let rect={x:0,y:0,w:1,h:1};
+    let drag=null,rawItems=[],sliced=[];
+
+    const colsEl=body.querySelector('#slCols'),rowsEl=body.querySelector('#slRows');
+    const readCols=()=>clamp(parseInt(colsEl.value,10)||1,1,30);
+    const readRows=()=>clamp(parseInt(rowsEl.value,10)||1,1,40);
+
+    function paint(){
+      ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.drawImage(img,0,0,cv.width,cv.height);
+      const X=rect.x*cv.width,Y=rect.y*cv.height,Wd=rect.w*cv.width,Hd=rect.h*cv.height;
+      ctx.save();
+      ctx.fillStyle='rgba(18,30,42,.38)';
+      ctx.fillRect(0,0,cv.width,Y);
+      ctx.fillRect(0,Y+Hd,cv.width,cv.height-Y-Hd);
+      ctx.fillRect(0,Y,X,Hd);
+      ctx.fillRect(X+Wd,Y,cv.width-X-Wd,Hd);
+      ctx.restore();
+      const cols=readCols(),rows=readRows();
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(X,Y,Wd,Hd);
+      ctx.strokeStyle='rgba(74,144,217,.9)';ctx.lineWidth=1;
+      for(let c=1;c<cols;c++){ctx.beginPath();ctx.moveTo(X+Wd*c/cols,Y);ctx.lineTo(X+Wd*c/cols,Y+Hd);ctx.stroke();}
+      for(let r=1;r<rows;r++){ctx.beginPath();ctx.moveTo(X,Y+Hd*r/rows);ctx.lineTo(X+Wd,Y+Hd*r/rows);ctx.stroke();}
+    }
+    function posOf(e){
+      const r=cv.getBoundingClientRect();
+      return {x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};
+    }
+    cv.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      const p=posOf(e);
+      drag={x0:p.x,y0:p.y};
+      if(cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+    });
+    cv.addEventListener('pointermove',e=>{
+      if(!drag) return;
+      const p=posOf(e);
+      rect={x:Math.min(drag.x0,p.x),y:Math.min(drag.y0,p.y),
+            w:Math.abs(p.x-drag.x0),h:Math.abs(p.y-drag.y0)};
+      paint();
+    });
+    cv.addEventListener('pointerup',()=>{
+      if(!drag) return;
+      drag=null;
+      if(rect.w<0.04||rect.h<0.04) rect={x:0,y:0,w:1,h:1};
+      paint(); slice();
+    });
+
+    function slice(){
+      if(!sdata){ toast('读不到图片像素'); return; }
+      const cols=readCols(),rows=readRows();
+      const X=rect.x*SW,Y=rect.y*SH,Wd=rect.w*SW,Hd=rect.h*SH;
+      const cw=Wd/cols,ch=Hd/rows;
+      rawItems=[];
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const ix=X+cw*c+cw*0.25,iy=Y+ch*r+ch*0.25;
+          const col=medianColorInRect(sdata,SW,SH,ix,iy,ix+cw*0.5,iy+ch*0.5);
+          if(col) rawItems.push({code:'',r:col.r,g:col.g,b:col.b});
+        }
+      }
+      refresh();
+    }
+    function refresh(){
+      const useWB=body.querySelector('#slWB').checked;
+      if(!useWB||!rawItems.length){
+        sliced=rawItems.map(it=>({...it}));
+      }else{
+        const w=estimateWhite(rawItems);
+        const lum=0.299*w.r+0.587*w.g+0.114*w.b;
+        sliced = lum>165
+          ? rawItems.map(it=>{const c=applyWB(it,w,0.7);return {code:it.code,r:c.r,g:c.g,b:c.b};})
+          : rawItems.map(it=>({...it}));
+      }
+      renderPreview();
+    }
+    function renderPreview(){
+      const box=body.querySelector('#slPreview');
+      box.innerHTML='';
+      sliced.forEach((it,i)=>{
+        const d=document.createElement('div');
+        d.className='sw';
+        d.innerHTML=`<span class="chip" style="background:${rgbHex(it)}"></span>
+          <input class="ce" value="${escapeHtml(it.code)}" placeholder="${i+1}">`;
+        const inp=d.querySelector('input');
+        inp.addEventListener('input',ev=>{ sliced[i].code=ev.target.value; });
+        box.appendChild(d);
+      });
+      body.querySelector('#slCount').textContent=sliced.length?`共 ${sliced.length} 块`:'';
+    }
+    function applyCodes(){
+      const start=parseInt(body.querySelector('#slStart').value,10);
+      const prefix=body.querySelector('#slPrefix').value||'';
+      const pad=clamp(parseInt(body.querySelector('#slPad').value,10)||0,0,4);
+      const dir=body.querySelector('#slDir').value;
+      const cols=readCols(),rows=readRows();
+      const s0=isNaN(start)?1:start;
+      sliced.forEach((it,i)=>{
+        const r=Math.floor(i/cols),c=i%cols;
+        const seq=dir==='col'?(c*rows+r):(r*cols+c);
+        let str=String(s0+seq);
+        if(pad>0) str=str.padStart(pad,'0');
+        it.code=prefix+str;
+      });
+      renderPreview();
+    }
+
+    colsEl.addEventListener('input',()=>{paint();slice();});
+    rowsEl.addEventListener('input',()=>{paint();slice();});
+    body.querySelector('#slWB').addEventListener('change',refresh);
+    body.querySelector('#slReset').addEventListener('click',()=>{rect={x:0,y:0,w:1,h:1};paint();slice();});
+    body.querySelector('#slApply').addEventListener('click',applyCodes);
+    body.querySelector('#slCancel').addEventListener('click',()=>{
+      const m=body.closest('.popmask'); if(m) m.remove();
+    });
+    body.querySelector('#slSave').addEventListener('click',()=>{
+      const name=(body.querySelector('#slShop').value||'').trim()
+        ||('色卡 '+new Date().toLocaleDateString('zh-CN'));
+      const items=sliced.map((it,i)=>({code:(it.code||'').trim()||String(i+1),r:it.r,g:it.g,b:it.b}));
+      if(!items.length){ toast('没有切出色块，请调整框选区域'); return; }
+      const pal={id:'p'+Date.now(),name,items};
+      palettes.push(pal);curPalId=pal.id;savePals();
+      renderPalTabs();renderPalGrid();
+      const m=body.closest('.popmask'); if(m) m.remove();
+      toast(`已保存「${name}」共 ${items.length} 色`);
+    });
+
+    paint();slice();
+    applyCodes();
+  });
+}
+
+/* ---------- 入口 2：粘贴表格导入 ---------- */
+function parsePalText(text){
+  const out=[];
+  String(text).split(/\r?\n/).forEach(line=>{
+    const s=line.trim();
+    if(!s) return;
+    const parts=s.split(/[\s,，;；\t]+/).filter(Boolean);
+    if(!parts.length) return;
+    let hexIdx=-1;
+    for(let i=0;i<parts.length;i++){
+      if(/^#?[0-9a-fA-F]{6}$/.test(parts[i])){ hexIdx=i; break; }
+    }
+    if(hexIdx>=0){
+      const rgb=hex2rgb(parts[hexIdx]);
+      if(!rgb) return;
+      const code=parts.filter((_,i)=>i!==hexIdx).join(' ').trim()||parts[hexIdx].toUpperCase();
+      out.push({code,r:rgb.r,g:rgb.g,b:rgb.b});
+      return;
+    }
+    const nums=[],rest=[];
+    parts.forEach(p=>{ if(/^\d{1,3}$/.test(p)&&+p<=255) nums.push(+p); else rest.push(p); });
+    if(nums.length>=3){
+      const n=nums.slice(-3);
+      const lead=nums.slice(0,nums.length-3).map(String);
+      const code=[...lead,...rest].join(' ').trim()||('色'+(out.length+1));
+      out.push({code,r:n[0],g:n[1],b:n[2]});
+    }
+  });
+  return out;
+}
+function openPalPaste(){
+  openPop('粘贴色卡表格','每行一个颜色：色号 + 色值。色值支持 <code>#RRGGBB</code> 或三个 0-255 的数字，可直接从 Excel 复制粘贴。',
+  `<textarea class="paste-box" id="psText" placeholder="1  #F2F2F0
+2  #F3EEE4
+8  #F5445C
+9  255,32,120
+15 #FFE11B"></textarea>
+   <div class="hintline">分隔符支持空格 / 逗号 / Tab / 分号。识别不了的行走忽略。</div>
+   <div class="popact">
+     <input type="text" id="psName" placeholder="店铺名 / 色卡名" style="flex:1;min-width:150px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
+     <button class="btn primary mini" id="psOk" type="button">导入</button>
+     <button class="btn ghost mini" id="psCancel" type="button">取消</button>
+   </div>`,
+  (body,mask)=>{
+    body.querySelector('#psCancel').addEventListener('click',()=>mask.remove());
+    body.querySelector('#psOk').addEventListener('click',()=>{
+      const items=parsePalText(body.querySelector('#psText').value);
+      if(!items.length){ toast('没解析到颜色，请检查格式'); return; }
+      const name=(body.querySelector('#psName').value||'').trim()
+        ||('色卡 '+new Date().toLocaleDateString('zh-CN'));
+      const pal={id:'p'+Date.now(),name,items};
+      palettes.push(pal);curPalId=pal.id;savePals();
+      renderPalTabs();renderPalGrid();mask.remove();
+      toast(`已导入「${name}」共 ${items.length} 色`);
+    });
+  });
+}
+
+/* ---------- 入口 3：手动加色 ---------- */
+function ensureWritablePal(){
+  const pal=curPal();
+  if(!pal.builtin) return pal;
+  const np={id:'p'+Date.now(),name:'我的色卡',items:[]};
+  palettes.push(np);curPalId=np.id;savePals();renderPalTabs();
+  return np;
+}
+function openPalManual(){
+  openPop('手动加一个颜色','填色号，再选一个颜色。加到当前色卡末尾。',
+  `<div class="sw-row">
+     <input type="text" id="mnCode" placeholder="色号，如 12 或 思博尔-12" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
+     <input type="color" id="mnColor" value="#c8863c" style="width:54px;height:44px;border:1px solid #bcd5e8;border-radius:9px;padding:2px;background:#fff;cursor:pointer">
+   </div>
+   <div class="popact">
+     <button class="btn primary mini" id="mnOk" type="button">加进去</button>
+     <button class="btn ghost mini" id="mnCancel" type="button">取消</button>
+   </div>`,
+  (body,mask)=>{
+    body.querySelector('#mnCancel').addEventListener('click',()=>mask.remove());
+    body.querySelector('#mnOk').addEventListener('click',()=>{
+      const code=(body.querySelector('#mnCode').value||'').trim();
+      if(!code){ toast('请填色号'); return; }
+      const rgb=hex2rgb(body.querySelector('#mnColor').value);
+      if(!rgb){ toast('颜色无效'); return; }
+      const pal=ensureWritablePal();
+      pal.items.push({code,r:rgb.r,g:rgb.g,b:rgb.b});
+      savePals();renderPalTabs();renderPalGrid();mask.remove();
+      toast(`已加入 ${code}`);
+    });
+  });
+}
+
+/* ---------- 初始化 ---------- */
+function initColorModule(){
+  loadPals();
+  renderPalTabs();
+  renderPalGrid();
+  renderPickArea();
+
+  $('btnPalImg').addEventListener('click',()=>$('palImgInput').click());
+  $('palImgInput').addEventListener('change',e=>{
+    const f=e.target.files&&e.target.files[0];
+    if(f) importPalPhoto(f);
+    e.target.value='';
+  });
+  $('btnPalText').addEventListener('click',openPalPaste);
+  $('btnPalManual').addEventListener('click',openPalManual);
+  $('btnMatch').addEventListener('click',runMatch);
+  $('pickImgInput').addEventListener('change',e=>{
+    loadPickFiles(e.target.files);
+    e.target.value='';
+  });
+
+  $('btnPalRename').addEventListener('click',()=>{
+    const pal=curPal();
+    if(pal.builtin) return;
+    openPop('重命名色卡','',`<div class="sw-row">
+      <input type="text" id="rnVal" value="${escapeHtml(pal.name)}" style="flex:1;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
+      </div><div class="popact">
+      <button class="btn primary mini" id="rnOk" type="button">确定</button>
+      <button class="btn ghost mini" id="rnCancel" type="button">取消</button></div>`,
+    (body,mask)=>{
+      body.querySelector('#rnCancel').addEventListener('click',()=>mask.remove());
+      body.querySelector('#rnOk').addEventListener('click',()=>{
+        const v=(body.querySelector('#rnVal').value||'').trim();
+        if(!v){ toast('名字不能为空'); return; }
+        pal.name=v;savePals();renderPalTabs();renderPalGrid();mask.remove();
+      });
+    });
+  });
+
+  $('btnPalDel').addEventListener('click',()=>{
+    const pal=curPal();
+    if(pal.builtin) return;
+    openPop('删除色卡',`确定删除「${escapeHtml(pal.name)}」？删除后不可恢复。`,
+    `<div class="popact">
+      <button class="btn primary mini" id="dlOk" type="button">确定删除</button>
+      <button class="btn ghost mini" id="dlCancel" type="button">取消</button></div>`,
+    (body,mask)=>{
+      body.querySelector('#dlCancel').addEventListener('click',()=>mask.remove());
+      body.querySelector('#dlOk').addEventListener('click',()=>{
+        palettes=palettes.filter(p=>p.id!==pal.id);
+        curPalId=palettes[0]?palettes[0].id:REF_PALETTE.id;
+        savePals();renderPalTabs();renderPalGrid();mask.remove();
+        toast('已删除');
+      });
+    });
+  });
+
+  $('pickedColor').addEventListener('input',e=>{
+    const rgb=hex2rgb(e.target.value);
+    if(!rgb) return;
+    pickedColor=rgb;
+    $('pickedChip').style.background=rgbHex(rgb);
+    $('pickedHex').textContent=`${rgbHex(rgb).toUpperCase()} · RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+  });
+
+  $('pickedHex').textContent='未取色';
+}
+
 render();
+initColorModule();
 </script>
 </body>
 </html>
