@@ -123,31 +123,26 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .pal-tab{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
 .pal-tab:hover{border-color:var(--acc);color:var(--acc)}
 .pal-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:11px;max-height:290px;overflow-y:auto;padding-right:2px}
-.sw{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;text-align:center}
-.sw .chip{height:40px;display:block;width:100%}
-.sw .code{font-size:11px;padding:3px 2px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sw input.ce{width:100%;border:none;border-top:1px solid var(--line);font-size:11px;text-align:center;padding:3px 1px;font-family:inherit;color:var(--ink);background:#fff}
-.sw input.ce:focus{outline:2px solid #b3d0e8;outline-offset:-2px}
+.pal-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px}
+.pal-name{font-size:14.5px;font-weight:700;color:var(--ink);letter-spacing:.2px}
+.pal-meta{font-size:12px;color:var(--mut)}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:7px;margin-top:11px;max-height:336px;overflow-y:auto;padding-right:2px}
+.sw{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;text-align:center;transition:box-shadow .15s}
+.sw:hover{box-shadow:0 2px 8px rgba(40,70,100,.14)}
+.sw .chip{height:32px;display:block;width:100%;background-repeat:no-repeat;background-position:center;background-size:cover}
+.sw .code{font-size:11px;padding:2px 1px 3px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .pick-canvas{border:1px solid var(--line);border-radius:10px;cursor:crosshair;max-width:100%;background:#fff;display:block;margin-bottom:6px}
 .chipbox{width:74px;height:46px;border-radius:9px;border:1px solid var(--line);flex:none}
 .match-item{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-top:8px;background:#fff}
 .match-item.top1{border-color:var(--ok);box-shadow:0 0 0 2px rgba(62,142,90,.14)}
 .match-item .rank{width:23px;height:23px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
 .match-item.top1 .rank{background:var(--ok)}
-.match-item .chip{width:52px;height:38px;border-radius:7px;border:1px solid var(--line);flex:none}
+.match-item .chip{width:62px;height:38px;border-radius:7px;border:1px solid var(--line);flex:none;background-repeat:no-repeat;background-position:center;background-size:cover}
 .match-item .info{flex:1;min-width:0}
 .match-item .code{font-size:13.5px;font-weight:700;line-height:1.35}
 .match-item .sub{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Consolas,monospace}
 .match-item .de{font-size:12.5px;font-weight:700;color:var(--mut);text-align:right;flex:none;line-height:1.4}
 .match-item .de b{display:block;font-size:15px;color:var(--ink)}
-.paste-box{width:100%;min-height:92px;border:1px solid #bcd5e8;border-radius:9px;padding:8px 10px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--ink);resize:vertical;line-height:1.55}
-.paste-box:focus{outline:2px solid #b3d0e8;border-color:var(--acc)}
-.popmask{position:fixed;inset:0;background:rgba(30,44,58,.42);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
-.popmask .pop{background:#fff;border-radius:14px;padding:18px 20px;max-width:560px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 10px 34px rgba(30,50,70,.26)}
-.popmask h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
-.popmask .pdesc{font-size:12.5px;color:var(--mut);margin-bottom:12px}
-.popact{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
 </style>
 </head>
 <body>
@@ -284,22 +279,16 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
   <section class="card">
     <div class="step-head">
       <span class="step-num" style="background:#8e6bb5">★</span><h2>配色推荐</h2>
-      <span class="hint">点图纸取色，找最接近的色号</span>
+      <span class="hint">上传参考图取色，匹配义乌思博尔色号</span>
     </div>
 
     <div class="field-label">① 色卡库</div>
-    <div class="pal-tabs" id="palTabs"></div>
-    <div class="sw-row">
-      <button class="btn ghost mini" id="btnPalImg" type="button">上传色卡图</button>
-      <button class="btn ghost mini" id="btnPalText" type="button">粘贴表格</button>
-      <button class="btn ghost mini" id="btnPalManual" type="button">手动加色</button>
-      <button class="btn ghost mini" id="btnPalRename" type="button">重命名</button>
-      <button class="btn ghost mini" id="btnPalDel" type="button">删除色卡</button>
-      <input type="file" id="palImgInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+    <div class="pal-head">
+      <div class="pal-name" id="palName">义乌思博尔色卡</div>
+      <div class="pal-meta" id="palCount">正在加载…</div>
     </div>
-    <div class="hintline">色卡保存在本机浏览器，不上传服务器。没有色卡时默认用内置 48 色常用色。</div>
+    <div class="pal-tabs" id="palTabs" style="margin-top:9px"></div>
     <div id="palSwatches" class="swatches"></div>
-    <div id="palCount" class="hintline"></div>
 
     <div class="field-label">② 上传参考图并取色</div>
     <div id="pickWrap"></div>
@@ -312,14 +301,15 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     </div>
 
     <div class="field-label">③ 推荐色号</div>
-    <div id="matchResult"><div class="hintline">在图纸上点一下想配的颜色（比如头发），再点「匹配色号」。</div></div>
+    <div id="matchResult"><div class="hintline">上传参考图后，在图上点一下想配的颜色（比如头发），再点「匹配色号」。</div></div>
   </section>
 
 </div>
 
-<footer>纯本地工具 · 图片不上传服务器 · 建议使用 Chrome / Edge 浏览器</footer>
+<footer>图片仅在本机处理 · 色卡数据来自本地服务 · 建议使用 Chrome / Edge 浏览器</footer>
 <div id="toast"></div>
 
+<script src="assets/palette-seed.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const f1=n=>{const v=Math.round(n*10)/10;return v%1===0?v.toFixed(0):v.toFixed(1)};
@@ -1311,38 +1301,58 @@ function deLabel(de){
   return '差异明显';
 }
 
-/* 固定色卡：思博尔毛绒 1-21
-   色值从实物色卡照片按真实网格提取（每格中心 50% 区域取中位色），
-   未做白平衡，保留照片原色——取色与色卡在同一光线条件下拍摄时误差最小。 */
-const FIXED_PALETTE={id:'__fixed__',name:'思博尔毛绒',builtin:true,items:[
-  {code:'1', r:231,g:230,b:232},{code:'2', r:231,g:227,b:214},{code:'3', r:223,g:213,b:164},
-  {code:'4', r:248,g:191,b:161},{code:'5', r:229,g:161,b:186},{code:'6', r:239,g:127,b:135},
-  {code:'7', r:209,g:66, b:89 },{code:'8', r:255,g:74, b:85 },{code:'9', r:230,g:53, b:116},
-  {code:'10',r:228,g:66, b:120},{code:'11',r:252,g:35, b:56 },{code:'12',r:175,g:1,  b:12 },
-  {code:'13',r:160,g:37, b:46 },{code:'14',r:135,g:24, b:19 },{code:'15',r:254,g:235,b:26 },
-  {code:'16',r:239,g:210,b:195},{code:'17',r:222,g:138,b:44 },{code:'18',r:156,g:139,b:109},
-  {code:'19',r:122,g:53, b:10 },{code:'20',r:72, g:36, b:13 },{code:'21',r:56, g:36, b:25 }
-]};
+/* ---------- 色卡：义乌思博尔（1-210，数据存于后端） ----------
+   数据唯一来源是 data/palette.json，由本地服务 /api/palette 提供；
+   直接双击打开（没有服务）时，回退到 assets/palette-seed.js 里的同源副本。 */
+const PAL_PAGES=[
+  {label:'全部', from:0,   to:9999},
+  {label:'1–42',  from:1,   to:42},
+  {label:'43–84', from:43,  to:84},
+  {label:'85–126',from:85,  to:126},
+  {label:'127–168',from:127,to:168},
+  {label:'169–210',from:169,to:210}
+];
+let PALT={name:'义乌思博尔色卡',photos:[],items:[]};
+let palPageIdx=0, palSource='none';
+let pickedColor=null, pickImgs=[];
 
-const PAL_KEY='nunu_palettes_v2';
-let palettes=[], curPalId=null, pickedColor=null, pickImgs=[];
-
-function palList(){ return [FIXED_PALETTE].concat(palettes); }
-function curPal(){ return palList().find(p=>p.id===curPalId)||FIXED_PALETTE; }
-function loadPals(){
-  try{
-    const raw=localStorage.getItem(PAL_KEY);
-    if(raw){
-      const o=JSON.parse(raw);
-      if(o&&Array.isArray(o.palettes)) palettes=o.palettes.filter(p=>p&&Array.isArray(p.items));
-      if(o&&o.curId&&palettes.some(p=>p.id===o.curId)) curPalId=o.curId;
-    }
-  }catch(e){}
-  if(!palList().some(p=>p.id===curPalId)) curPalId=FIXED_PALETTE.id;
+function normalizePalette(raw){
+  const items=(raw.items||[]).map(it=>({
+    code:String(it.code),
+    page:it.page,
+    rect:it.rect,
+    r:it.rgb[0], g:it.rgb[1], b:it.rgb[2]
+  })).sort((a,b)=>Number(a.code)-Number(b.code));
+  items.forEach(it=>{ it._lab=srgb2lab(it.r,it.g,it.b); });
+  return {name:raw.name||'义乌思博尔色卡', photos:raw.photos||[], items};
 }
-function savePals(){
-  try{ localStorage.setItem(PAL_KEY,JSON.stringify({palettes,curId:curPalId})); }
-  catch(e){ toast('色卡保存失败：浏览器本地存储可能已满'); }
+async function loadPalette(){
+  let raw=null;
+  try{
+    const res=await fetch('api/palette',{cache:'no-store'});
+    if(res.ok) raw=await res.json();
+  }catch(e){ /* 没有后端（如直接打开文件）时走本地副本 */ }
+  if(raw&&raw.items&&raw.items.length){ palSource='backend'; }
+  else if(window.PALETTE_SEED&&window.PALETTE_SEED.items){ raw=window.PALETTE_SEED; palSource='seed'; }
+  if(!raw||!raw.items||!raw.items.length){
+    PALT={name:'色卡未加载',photos:[],items:[]};
+    palSource='none';
+    return;
+  }
+  PALT=normalizePalette(raw);
+}
+
+/* 色块直接用色卡照片上对应的那一格：把照片按比例放大，再定位到该格 */
+function chipStyle(it){
+  const photo=PALT.photos[it.page-1];
+  let s=`background-color:${rgbHex(it)}`;
+  if(photo&&it.rect){
+    const [x,y,w,h]=it.rect;
+    const bw=(100/w).toFixed(2), bh=(100/h).toFixed(2);
+    const bx=(100*x/(1-w)).toFixed(2), by=(100*y/(1-h)).toFixed(2);
+    s+=`;background-image:url('${photo}');background-size:${bw}% ${bh}%;background-position:${bx}% ${by}%`;
+  }
+  return s;
 }
 
 /* ---------- 取色：图像缓存 + 中位色（抗噪） ---------- */
@@ -1504,29 +1514,28 @@ function renderPickArea(){
 
 /* ---------- 匹配与结果 ---------- */
 function runMatch(){
-  if(!pickedColor){ toast('请先在图纸上点一下取色'); return; }
-  const pal=curPal();
-  if(!pal.items.length){ toast('当前色卡还没有颜色'); return; }
+  if(!pickedColor){ toast('请先上传参考图并在图上点一下取色'); return; }
+  if(!PALT.items.length){ toast('色卡数据未加载'); return; }
   const L=srgb2lab(pickedColor.r,pickedColor.g,pickedColor.b);
-  const scored=pal.items.map(it=>{
+  const scored=PALT.items.map(it=>{
     if(!it._lab) it._lab=srgb2lab(it.r,it.g,it.b);
     return {it,de:ciede2000(L,it._lab)};
   }).sort((a,b)=>a.de-b.de);
-  const top=scored.slice(0,6);
+  const top=scored.slice(0,8);
   const box=$('matchResult');
   box.innerHTML='';
   const head=document.createElement('div');
   head.className='hintline';
   head.style.marginTop='0';
-  head.innerHTML=`色卡「${escapeHtml(pal.name)}」共 ${pal.items.length} 色 · 最接近 <b>${escapeHtml(String(top[0].it.code))}</b>（ΔE ${top[0].de.toFixed(1)}）`;
+  head.innerHTML=`色卡「${escapeHtml(PALT.name)}」共 ${PALT.items.length} 色 · 最接近 <b>${escapeHtml(String(top[0].it.code))}</b> 号（ΔE ${top[0].de.toFixed(1)}）`;
   box.appendChild(head);
   top.forEach((s,i)=>{
     const row=document.createElement('div');
     row.className='match-item'+(i===0?' top1':'');
     row.innerHTML=`<div class="rank">${i+1}</div>
-      <span class="chip" style="background:${rgbHex(s.it)}"></span>
+      <span class="chip" style="${chipStyle(s.it)}"></span>
       <div class="info">
-        <div class="code">${escapeHtml(String(s.it.code))}</div>
+        <div class="code">${escapeHtml(String(s.it.code))} 号</div>
         <div class="sub">${rgbHex(s.it).toUpperCase()} · ${deLabel(s.de)}</div>
       </div>
       <div class="de"><b>ΔE ${s.de.toFixed(1)}</b>相似 ${deToSim(s.de)}%</div>`;
@@ -1543,392 +1552,45 @@ function renderPalTabs(){
   const box=$('palTabs');
   if(!box) return;
   box.innerHTML='';
-  palList().forEach(p=>{
+  PAL_PAGES.forEach((p,i)=>{
     const b=document.createElement('button');
     b.type='button';
-    b.className='pal-tab'+(p.id===curPalId?' on':'');
-    b.textContent=p.builtin?`${p.name} · ${p.items.length}色（固定）`:`${p.name} · ${p.items.length}色`;
-    b.addEventListener('click',()=>{ curPalId=p.id; savePals(); renderPalTabs(); renderPalGrid(); });
+    b.className='pal-tab'+(i===palPageIdx?' on':'');
+    b.textContent=p.from?p.label:`${p.label} ${PALT.items.length} 色`;
+    b.addEventListener('click',()=>{ palPageIdx=i; renderPalTabs(); renderPalGrid(); });
     box.appendChild(b);
   });
 }
 function renderPalGrid(){
-  const box=$('palSwatches'), cnt=$('palCount');
+  const box=$('palSwatches'), nameEl=$('palName'), cntEl=$('palCount');
   if(!box) return;
-  const pal=curPal();
-  box.innerHTML='';
-  pal.items.forEach(it=>{
-    const d=document.createElement('div');
-    d.className='sw';
-    d.innerHTML=`<span class="chip" style="background:${rgbHex(it)}" title="${rgbHex(it)}"></span>
-      <div class="code" title="${escapeHtml(String(it.code))}">${escapeHtml(String(it.code))}</div>`;
-    box.appendChild(d);
-  });
-  cnt.textContent=pal.builtin
-    ? `固定色卡「${pal.name}」共 ${pal.items.length} 色 · 色值取自实物色卡照片，可直接下单。`
-    : `当前色卡「${pal.name}」共 ${pal.items.length} 色。`;
-  const isRef=!!pal.builtin;
-  $('btnPalDel').disabled=isRef;
-  $('btnPalRename').disabled=isRef;
-}
-
-/* ---------- 通用弹窗 ---------- */
-function openPop(title,desc,bodyHTML,mount){
-  const mask=document.createElement('div');
-  mask.className='popmask';
-  mask.innerHTML=`<div class="pop"><h3>${title}</h3><div class="pdesc">${desc}</div><div class="pbody">${bodyHTML}</div></div>`;
-  mask.addEventListener('click',e=>{ if(e.target===mask) mask.remove(); });
-  document.body.appendChild(mask);
-  if(mount) mount(mask.querySelector('.pbody'),mask);
-  return {mask,body:mask.querySelector('.pbody')};
-}
-
-/* ---------- 入口 1：上传色卡照片，框选切格 ---------- */
-function importPalPhoto(file){
-  const url=URL.createObjectURL(file);
-  const img=new Image();
-  img.onload=()=>{ URL.revokeObjectURL(url); openPalSlicer(img); };
-  img.onerror=()=>{ URL.revokeObjectURL(url); toast('图片读取失败'); };
-  img.src=url;
-}
-function openPalSlicer(img){
-  const natW=img.naturalWidth,natH=img.naturalHeight;
-  openPop('从色卡照片切出色块',
-    '在照片上拖一个框，把色卡格子全部框住；再填列数和行数。编号方式按你的色卡实际排布选。',
-    `<div id="slWrap"></div>
-     <div class="sw-row">
-       <span style="font-size:13px">列</span>
-       <input type="number" id="slCols" value="3" min="1" max="30" style="width:66px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
-       <span style="font-size:13px">行</span>
-       <input type="number" id="slRows" value="7" min="1" max="40" style="width:66px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
-       <label style="font-size:12.5px;display:flex;align-items:center;gap:5px;cursor:pointer" title="默认关闭。实测开启后会把亮黄等色推向通道溢出、反而失真，照片本身白平衡正常时不需要开"><input type="checkbox" id="slWB"> 白平衡校正</label>
-       <button class="btn ghost mini" id="slReset" type="button">框选全图</button>
-     </div>
-     <div class="field-label">切出的色块 <span id="slCount" class="hintline" style="display:inline;margin:0"></span></div>
-     <div id="slPreview" class="swatches" style="max-height:210px"></div>
-     <div class="field-label">批量编号</div>
-     <div class="sw-row">
-       <input type="text" id="slShop" placeholder="店铺名，如 思博尔毛绒" style="flex:1;min-width:140px;padding:7px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
-     </div>
-     <div class="sw-row">
-       <span style="font-size:13px">起始号</span>
-       <input type="number" id="slStart" value="1" style="width:70px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
-       <span style="font-size:13px">前缀</span>
-       <input type="text" id="slPrefix" value="" placeholder="可空" style="width:64px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
-       <span style="font-size:13px">位数</span>
-       <input type="number" id="slPad" value="0" min="0" max="4" style="width:60px;padding:7px 9px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px">
-     </div>
-     <div class="sw-row">
-       <select id="slDir" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
-         <option value="col">先列后行（1-7、8-14、15-21…）</option>
-         <option value="row">先行后列（1-3、4-6、7-9…）</option>
-       </select>
-       <button class="btn ghost mini" id="slApply" type="button">应用编号</button>
-     </div>
-     <div class="popact">
-       <button class="btn primary mini" id="slSave" type="button">保存为色卡</button>
-       <button class="btn ghost mini" id="slCancel" type="button">取消</button>
-     </div>`,
-  body=>{
-    /* 显示用画布（宽度限制 520） */
-    const vs=Math.min(1,520/natW);
-    const cv=document.createElement('canvas');
-    cv.width=Math.max(1,Math.round(natW*vs));
-    cv.height=Math.max(1,Math.round(natH*vs));
-    cv.style.width='100%';cv.style.maxWidth='520px';cv.style.display='block';
-    cv.style.borderRadius='10px';cv.style.cursor='crosshair';cv.style.touchAction='none';
-    body.querySelector('#slWrap').appendChild(cv);
-    const ctx=cv.getContext('2d');
-
-    /* 取样画布（长边 ≤1000） */
-    const ss=Math.min(1,1000/Math.max(natW,natH));
-    const SW=Math.max(1,Math.round(natW*ss)),SH=Math.max(1,Math.round(natH*ss));
-    const sc=document.createElement('canvas');sc.width=SW;sc.height=SH;
-    const sctx=sc.getContext('2d',{willReadFrequently:true});
-    sctx.drawImage(img,0,0,SW,SH);
-    let sdata;
-    try{ sdata=sctx.getImageData(0,0,SW,SH).data; }catch(e){ sdata=null; }
-
-    let rect={x:0,y:0,w:1,h:1};
-    let drag=null,rawItems=[],sliced=[];
-
-    const colsEl=body.querySelector('#slCols'),rowsEl=body.querySelector('#slRows');
-    const readCols=()=>clamp(parseInt(colsEl.value,10)||1,1,30);
-    const readRows=()=>clamp(parseInt(rowsEl.value,10)||1,1,40);
-
-    function paint(){
-      ctx.clearRect(0,0,cv.width,cv.height);
-      ctx.drawImage(img,0,0,cv.width,cv.height);
-      const X=rect.x*cv.width,Y=rect.y*cv.height,Wd=rect.w*cv.width,Hd=rect.h*cv.height;
-      ctx.save();
-      ctx.fillStyle='rgba(18,30,42,.38)';
-      ctx.fillRect(0,0,cv.width,Y);
-      ctx.fillRect(0,Y+Hd,cv.width,cv.height-Y-Hd);
-      ctx.fillRect(0,Y,X,Hd);
-      ctx.fillRect(X+Wd,Y,cv.width-X-Wd,Hd);
-      ctx.restore();
-      const cols=readCols(),rows=readRows();
-      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(X,Y,Wd,Hd);
-      ctx.strokeStyle='rgba(74,144,217,.9)';ctx.lineWidth=1;
-      for(let c=1;c<cols;c++){ctx.beginPath();ctx.moveTo(X+Wd*c/cols,Y);ctx.lineTo(X+Wd*c/cols,Y+Hd);ctx.stroke();}
-      for(let r=1;r<rows;r++){ctx.beginPath();ctx.moveTo(X,Y+Hd*r/rows);ctx.lineTo(X+Wd,Y+Hd*r/rows);ctx.stroke();}
-    }
-    function posOf(e){
-      const r=cv.getBoundingClientRect();
-      return {x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};
-    }
-    cv.addEventListener('pointerdown',e=>{
-      e.preventDefault();
-      const p=posOf(e);
-      drag={x0:p.x,y0:p.y};
-      if(cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
-    });
-    cv.addEventListener('pointermove',e=>{
-      if(!drag) return;
-      const p=posOf(e);
-      rect={x:Math.min(drag.x0,p.x),y:Math.min(drag.y0,p.y),
-            w:Math.abs(p.x-drag.x0),h:Math.abs(p.y-drag.y0)};
-      paint();
-    });
-    cv.addEventListener('pointerup',()=>{
-      if(!drag) return;
-      drag=null;
-      if(rect.w<0.04||rect.h<0.04) rect={x:0,y:0,w:1,h:1};
-      paint(); slice();
-    });
-
-    function slice(){
-      if(!sdata){ toast('读不到图片像素'); return; }
-      const cols=readCols(),rows=readRows();
-      const X=rect.x*SW,Y=rect.y*SH,Wd=rect.w*SW,Hd=rect.h*SH;
-      const cw=Wd/cols,ch=Hd/rows;
-      rawItems=[];
-      for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
-          const ix=X+cw*c+cw*0.25,iy=Y+ch*r+ch*0.25;
-          const col=medianColorInRect(sdata,SW,SH,ix,iy,ix+cw*0.5,iy+ch*0.5);
-          if(col) rawItems.push({code:'',r:col.r,g:col.g,b:col.b});
-        }
-      }
-      refresh();
-    }
-    function refresh(){
-      const useWB=body.querySelector('#slWB').checked;
-      if(!useWB||!rawItems.length){
-        sliced=rawItems.map(it=>({...it}));
-      }else{
-        const w=estimateWhite(rawItems);
-        const lum=0.299*w.r+0.587*w.g+0.114*w.b;
-        sliced = lum>165
-          ? rawItems.map(it=>{const c=applyWB(it,w,0.7);return {code:it.code,r:c.r,g:c.g,b:c.b};})
-          : rawItems.map(it=>({...it}));
-      }
-      renderPreview();
-    }
-    function renderPreview(){
-      const box=body.querySelector('#slPreview');
-      box.innerHTML='';
-      sliced.forEach((it,i)=>{
-        const d=document.createElement('div');
-        d.className='sw';
-        d.innerHTML=`<span class="chip" style="background:${rgbHex(it)}"></span>
-          <input class="ce" value="${escapeHtml(it.code)}" placeholder="${i+1}">`;
-        const inp=d.querySelector('input');
-        inp.addEventListener('input',ev=>{ sliced[i].code=ev.target.value; });
-        box.appendChild(d);
-      });
-      body.querySelector('#slCount').textContent=sliced.length?`共 ${sliced.length} 块`:'';
-    }
-    function applyCodes(){
-      const start=parseInt(body.querySelector('#slStart').value,10);
-      const prefix=body.querySelector('#slPrefix').value||'';
-      const pad=clamp(parseInt(body.querySelector('#slPad').value,10)||0,0,4);
-      const dir=body.querySelector('#slDir').value;
-      const cols=readCols(),rows=readRows();
-      const s0=isNaN(start)?1:start;
-      sliced.forEach((it,i)=>{
-        const r=Math.floor(i/cols),c=i%cols;
-        const seq=dir==='col'?(c*rows+r):(r*cols+c);
-        let str=String(s0+seq);
-        if(pad>0) str=str.padStart(pad,'0');
-        it.code=prefix+str;
-      });
-      renderPreview();
-    }
-
-    colsEl.addEventListener('input',()=>{paint();slice();});
-    rowsEl.addEventListener('input',()=>{paint();slice();});
-    body.querySelector('#slWB').addEventListener('change',refresh);
-    body.querySelector('#slReset').addEventListener('click',()=>{rect={x:0,y:0,w:1,h:1};paint();slice();});
-    body.querySelector('#slApply').addEventListener('click',applyCodes);
-    body.querySelector('#slCancel').addEventListener('click',()=>{
-      const m=body.closest('.popmask'); if(m) m.remove();
-    });
-    body.querySelector('#slSave').addEventListener('click',()=>{
-      const name=(body.querySelector('#slShop').value||'').trim()
-        ||('色卡 '+new Date().toLocaleDateString('zh-CN'));
-      const items=sliced.map((it,i)=>({code:(it.code||'').trim()||String(i+1),r:it.r,g:it.g,b:it.b}));
-      if(!items.length){ toast('没有切出色块，请调整框选区域'); return; }
-      const pal={id:'p'+Date.now(),name,items};
-      palettes.push(pal);curPalId=pal.id;savePals();
-      renderPalTabs();renderPalGrid();
-      const m=body.closest('.popmask'); if(m) m.remove();
-      toast(`已保存「${name}」共 ${items.length} 色`);
-    });
-
-    paint();slice();
-    applyCodes();
-  });
-}
-
-/* ---------- 入口 2：粘贴表格导入 ---------- */
-function parsePalText(text){
-  const out=[];
-  String(text).split(/\r?\n/).forEach(line=>{
-    const s=line.trim();
-    if(!s) return;
-    const parts=s.split(/[\s,，;；\t]+/).filter(Boolean);
-    if(!parts.length) return;
-    let hexIdx=-1;
-    for(let i=0;i<parts.length;i++){
-      if(/^#?[0-9a-fA-F]{6}$/.test(parts[i])){ hexIdx=i; break; }
-    }
-    if(hexIdx>=0){
-      const rgb=hex2rgb(parts[hexIdx]);
-      if(!rgb) return;
-      const code=parts.filter((_,i)=>i!==hexIdx).join(' ').trim()||parts[hexIdx].toUpperCase();
-      out.push({code,r:rgb.r,g:rgb.g,b:rgb.b});
-      return;
-    }
-    const nums=[],rest=[];
-    parts.forEach(p=>{ if(/^\d{1,3}$/.test(p)&&+p<=255) nums.push(+p); else rest.push(p); });
-    if(nums.length>=3){
-      const n=nums.slice(-3);
-      const lead=nums.slice(0,nums.length-3).map(String);
-      const code=[...lead,...rest].join(' ').trim()||('色'+(out.length+1));
-      out.push({code,r:n[0],g:n[1],b:n[2]});
-    }
-  });
-  return out;
-}
-function openPalPaste(){
-  openPop('粘贴色卡表格','每行一个颜色：色号 + 色值。色值支持 <code>#RRGGBB</code> 或三个 0-255 的数字，可直接从 Excel 复制粘贴。',
-  `<textarea class="paste-box" id="psText" placeholder="1  #F2F2F0
-2  #F3EEE4
-8  #F5445C
-9  255,32,120
-15 #FFE11B"></textarea>
-   <div class="hintline">分隔符支持空格 / 逗号 / Tab / 分号。识别不了的行走忽略。</div>
-   <div class="popact">
-     <input type="text" id="psName" placeholder="店铺名 / 色卡名" style="flex:1;min-width:150px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:13.5px;font-family:inherit">
-     <button class="btn primary mini" id="psOk" type="button">导入</button>
-     <button class="btn ghost mini" id="psCancel" type="button">取消</button>
-   </div>`,
-  (body,mask)=>{
-    body.querySelector('#psCancel').addEventListener('click',()=>mask.remove());
-    body.querySelector('#psOk').addEventListener('click',()=>{
-      const items=parsePalText(body.querySelector('#psText').value);
-      if(!items.length){ toast('没解析到颜色，请检查格式'); return; }
-      const name=(body.querySelector('#psName').value||'').trim()
-        ||('色卡 '+new Date().toLocaleDateString('zh-CN'));
-      const pal={id:'p'+Date.now(),name,items};
-      palettes.push(pal);curPalId=pal.id;savePals();
-      renderPalTabs();renderPalGrid();mask.remove();
-      toast(`已导入「${name}」共 ${items.length} 色`);
-    });
-  });
-}
-
-/* ---------- 入口 3：手动加色 ---------- */
-function ensureWritablePal(){
-  const pal=curPal();
-  if(!pal.builtin) return pal;
-  const np={id:'p'+Date.now(),name:'我的色卡',items:[]};
-  palettes.push(np);curPalId=np.id;savePals();renderPalTabs();
-  return np;
-}
-function openPalManual(){
-  openPop('手动加一个颜色','填色号，再选一个颜色。加到当前色卡末尾。',
-  `<div class="sw-row">
-     <input type="text" id="mnCode" placeholder="色号，如 12 或 思博尔-12" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
-     <input type="color" id="mnColor" value="#c8863c" style="width:54px;height:44px;border:1px solid #bcd5e8;border-radius:9px;padding:2px;background:#fff;cursor:pointer">
-   </div>
-   <div class="popact">
-     <button class="btn primary mini" id="mnOk" type="button">加进去</button>
-     <button class="btn ghost mini" id="mnCancel" type="button">取消</button>
-   </div>`,
-  (body,mask)=>{
-    body.querySelector('#mnCancel').addEventListener('click',()=>mask.remove());
-    body.querySelector('#mnOk').addEventListener('click',()=>{
-      const code=(body.querySelector('#mnCode').value||'').trim();
-      if(!code){ toast('请填色号'); return; }
-      const rgb=hex2rgb(body.querySelector('#mnColor').value);
-      if(!rgb){ toast('颜色无效'); return; }
-      const pal=ensureWritablePal();
-      pal.items.push({code,r:rgb.r,g:rgb.g,b:rgb.b});
-      savePals();renderPalTabs();renderPalGrid();mask.remove();
-      toast(`已加入 ${code}`);
-    });
-  });
+  if(nameEl) nameEl.textContent=PALT.name;
+  if(!PALT.items.length){
+    box.innerHTML='';
+    if(cntEl) cntEl.textContent='色卡数据未加载';
+    return;
+  }
+  const pg=PAL_PAGES[palPageIdx];
+  const list=PALT.items.filter(it=>!pg.from||(+it.code>=pg.from&&+it.code<=pg.to));
+  box.innerHTML=list.map(it=>
+    `<div class="sw" title="${escapeHtml(it.code)} 号 · ${rgbHex(it).toUpperCase()}">
+       <span class="chip" style="${chipStyle(it)}"></span>
+       <div class="code">${escapeHtml(it.code)}</div>
+     </div>`).join('');
+  if(cntEl){
+    cntEl.textContent=pg.from
+      ? `${pg.label} 号 · 共 ${list.length} 色`
+      : `共 ${PALT.items.length} 色（1–${PALT.items[PALT.items.length-1].code}）`;
+  }
 }
 
 /* ---------- 初始化 ---------- */
-function initColorModule(){
-  loadPals();
-  renderPalTabs();
-  renderPalGrid();
-  renderPickArea();
-
-  $('btnPalImg').addEventListener('click',()=>$('palImgInput').click());
-  $('palImgInput').addEventListener('change',e=>{
-    const f=e.target.files&&e.target.files[0];
-    if(f) importPalPhoto(f);
-    e.target.value='';
-  });
-  $('btnPalText').addEventListener('click',openPalPaste);
-  $('btnPalManual').addEventListener('click',openPalManual);
+async function initColorModule(){
   $('btnMatch').addEventListener('click',runMatch);
   $('pickImgInput').addEventListener('change',e=>{
     loadPickFiles(e.target.files);
     e.target.value='';
   });
-
-  $('btnPalRename').addEventListener('click',()=>{
-    const pal=curPal();
-    if(pal.builtin) return;
-    openPop('重命名色卡','',`<div class="sw-row">
-      <input type="text" id="rnVal" value="${escapeHtml(pal.name)}" style="flex:1;padding:8px 10px;border:1px solid #bcd5e8;border-radius:8px;font-size:14px;font-family:inherit">
-      </div><div class="popact">
-      <button class="btn primary mini" id="rnOk" type="button">确定</button>
-      <button class="btn ghost mini" id="rnCancel" type="button">取消</button></div>`,
-    (body,mask)=>{
-      body.querySelector('#rnCancel').addEventListener('click',()=>mask.remove());
-      body.querySelector('#rnOk').addEventListener('click',()=>{
-        const v=(body.querySelector('#rnVal').value||'').trim();
-        if(!v){ toast('名字不能为空'); return; }
-        pal.name=v;savePals();renderPalTabs();renderPalGrid();mask.remove();
-      });
-    });
-  });
-
-  $('btnPalDel').addEventListener('click',()=>{
-    const pal=curPal();
-    if(pal.builtin) return;
-    openPop('删除色卡',`确定删除「${escapeHtml(pal.name)}」？删除后不可恢复。`,
-    `<div class="popact">
-      <button class="btn primary mini" id="dlOk" type="button">确定删除</button>
-      <button class="btn ghost mini" id="dlCancel" type="button">取消</button></div>`,
-    (body,mask)=>{
-      body.querySelector('#dlCancel').addEventListener('click',()=>mask.remove());
-      body.querySelector('#dlOk').addEventListener('click',()=>{
-        palettes=palettes.filter(p=>p.id!==pal.id);
-        curPalId=palettes[0]?palettes[0].id:REF_PALETTE.id;
-        savePals();renderPalTabs();renderPalGrid();mask.remove();
-        toast('已删除');
-      });
-    });
-  });
-
   $('pickedColor').addEventListener('input',e=>{
     const rgb=hex2rgb(e.target.value);
     if(!rgb) return;
@@ -1936,8 +1598,15 @@ function initColorModule(){
     $('pickedChip').style.background=rgbHex(rgb);
     $('pickedHex').textContent=`${rgbHex(rgb).toUpperCase()} · RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`;
   });
-
   $('pickedHex').textContent='未取色';
+
+  await loadPalette();
+  renderPalTabs();
+  renderPalGrid();
+  renderPickArea();
+  if(palSource==='none'){
+    toast('色卡未加载：请通过本地服务打开（node server.js）');
+  }
 }
 
 render();
