@@ -123,8 +123,18 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .pal-tab{border:1px solid #bcd5e8;background:#fff;color:var(--ink);border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:all .15s}
 .pal-tab:hover{border-color:var(--acc);color:var(--acc)}
 .pal-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.pal-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px}
-.pal-name{font-size:14.5px;font-weight:700;color:var(--ink);letter-spacing:.2px}
+.pal-vendors{display:flex;flex-direction:column;gap:8px}
+.pal-vendor{border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden}
+.pal-vendor-head{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:#f6f9fc;color:var(--ink);font-family:inherit;padding:10px 13px;cursor:pointer;transition:background .15s}
+.pal-vendor-head:hover{background:#edf4fa}
+.pal-vendor-head:disabled{cursor:default;opacity:.6}
+.pal-vendor-head:disabled:hover{background:#f6f9fc}
+.pal-caret{flex:none;font-size:9px;color:var(--mut);transition:transform .18s}
+.pal-vendor.open .pal-caret{transform:rotate(90deg);color:var(--acc)}
+.pal-vendor-head .pal-name{font-size:14px;font-weight:700}
+.pal-vendor-head .pal-meta{margin-left:auto;font-size:11.5px;color:var(--mut);text-align:right}
+.pal-vendor-body{padding:11px 12px 12px;border-top:1px solid var(--line);background:#fff}
+.pal-name{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.2px}
 .pal-meta{font-size:12px;color:var(--mut)}
 .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:7px;margin-top:11px;max-height:336px;overflow-y:auto;padding-right:2px}
 .sw{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;text-align:center;transition:box-shadow .15s}
@@ -139,6 +149,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .match-item.top1 .rank{background:var(--ok)}
 .match-item .chip{width:62px;height:38px;border-radius:7px;border:1px solid var(--line);flex:none;background-repeat:no-repeat;background-position:center;background-size:cover}
 .match-item .info{flex:1;min-width:0}
+.match-item .vtag{display:inline-block;font-size:11px;font-weight:600;color:#7b5aa6;background:#f3eefb;border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px}
 .match-item .code{font-size:13.5px;font-weight:700;line-height:1.35}
 .match-item .sub{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Consolas,monospace}
 .match-item .de{font-size:12.5px;font-weight:700;color:var(--mut);text-align:right;flex:none;line-height:1.4}
@@ -283,12 +294,8 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     </div>
 
     <div class="field-label">① 色卡库</div>
-    <div class="pal-head">
-      <div class="pal-name" id="palName">义乌思博尔色卡</div>
-      <div class="pal-meta" id="palCount">正在加载…</div>
-    </div>
-    <div class="pal-tabs" id="palTabs" style="margin-top:9px"></div>
-    <div id="palSwatches" class="swatches"></div>
+    <div class="hintline" style="margin-top:0">点击厂家名称展开展示该厂家的色卡；再点一次收起。</div>
+    <div id="palLibrary" class="pal-vendors"></div>
 
     <div class="field-label">② 上传参考图并取色</div>
     <div id="pickWrap"></div>
@@ -1304,16 +1311,17 @@ function deLabel(de){
 /* ---------- 色卡：义乌思博尔（1-210，数据存于后端） ----------
    数据唯一来源是 data/palette.json，由本地服务 /api/palette 提供；
    直接双击打开（没有服务）时，回退到 assets/palette-seed.js 里的同源副本。 */
-const PAL_PAGES=[
-  {label:'全部', from:0,   to:9999},
-  {label:'1–42',  from:1,   to:42},
-  {label:'43–84', from:43,  to:84},
-  {label:'85–126',from:85,  to:126},
-  {label:'127–168',from:127,to:168},
-  {label:'169–210',from:169,to:210}
+/* 固定三个厂家，写死不做动态增删。
+   每家的色卡数据存在后端 data/ 下，由 src 指定取数接口；src 为 null 表示该厂家还没录色卡。
+   目前只有义乌思博尔有色卡，另外两家留位，录入后填上 src 即可自动出现。 */
+const PAL_PAGE_SIZE=42;
+const VENDOR_DEFS=[
+  {key:'ywsbe',   name:'义乌思博尔', src:'api/palette'},
+  {key:'vendor2', name:null,         src:null},
+  {key:'vendor3', name:null,         src:null}
 ];
-let PALT={name:'义乌思博尔色卡',photos:[],items:[]};
-let palPageIdx=0, palSource='none';
+let palVendors=VENDOR_DEFS.map(v=>({...v,open:false,pageIdx:0,palette:null,pages:[]}));
+let palSource='none';
 let pickedColor=null, pickImgs=[];
 
 function normalizePalette(raw){
@@ -1324,27 +1332,50 @@ function normalizePalette(raw){
     r:it.rgb[0], g:it.rgb[1], b:it.rgb[2]
   })).sort((a,b)=>Number(a.code)-Number(b.code));
   items.forEach(it=>{ it._lab=srgb2lab(it.r,it.g,it.b); });
-  return {name:raw.name||'义乌思博尔色卡', photos:raw.photos||[], items};
+  return {name:raw.name||'未命名色卡', photos:raw.photos||[], items};
 }
-async function loadPalette(){
-  let raw=null;
-  try{
-    const res=await fetch('api/palette',{cache:'no-store'});
-    if(res.ok) raw=await res.json();
-  }catch(e){ /* 没有后端（如直接打开文件）时走本地副本 */ }
-  if(raw&&raw.items&&raw.items.length){ palSource='backend'; }
-  else if(window.PALETTE_SEED&&window.PALETTE_SEED.items){ raw=window.PALETTE_SEED; palSource='seed'; }
-  if(!raw||!raw.items||!raw.items.length){
-    PALT={name:'色卡未加载',photos:[],items:[]};
-    palSource='none';
-    return;
+
+/* 分页：超过一屏才分页，标签用真实色号范围 */
+function buildPages(items){
+  if(!items.length) return [];
+  const pages=[{label:'全部',from:0,to:0}];
+  if(items.length<=PAL_PAGE_SIZE) return pages;
+  for(let i=0;i<items.length;i+=PAL_PAGE_SIZE){
+    const seg=items.slice(i,i+PAL_PAGE_SIZE);
+    const a=Number(seg[0].code), b=Number(seg[seg.length-1].code);
+    if(isFinite(a)&&isFinite(b)) pages.push({label:`${a}–${b}`,from:a,to:b});
+    else pages.push({label:`第 ${i/PAL_PAGE_SIZE+1} 页`,from:i+1,to:i+seg.length});
   }
-  PALT=normalizePalette(raw);
+  return pages;
+}
+function loadedVendors(){ return palVendors.filter(v=>v.palette&&v.palette.items.length); }
+/* 显示名：以这里的写死名称为准；没写的厂家直接用色卡文件里的名称 */
+function vendorName(v){ return v.name||(v.palette&&v.palette.name)||'未命名厂家'; }
+
+async function loadPalette(){
+  for(const v of palVendors){
+    if(!v.src) continue;
+    let raw=null;
+    try{
+      const res=await fetch(v.src,{cache:'no-store'});
+      if(res.ok) raw=await res.json();
+    }catch(e){ /* 没有后端（直接打开文件）时走本地副本 */ }
+    if(!raw||!raw.items||!raw.items.length){
+      if(v.key==='ywsbe'&&window.PALETTE_SEED&&window.PALETTE_SEED.items){ raw=window.PALETTE_SEED; }
+    }else{ palSource='backend'; }
+    if(raw&&raw.items&&raw.items.length){
+      if(palSource!=='backend') palSource='seed';
+      v.palette=normalizePalette(raw);
+      v.pages=buildPages(v.palette.items);
+      v.name=vendorName(v);
+    }
+  }
+  if(!loadedVendors().length) palSource='none';
 }
 
 /* 色块直接用色卡照片上对应的那一格：把照片按比例放大，再定位到该格 */
-function chipStyle(it){
-  const photo=PALT.photos[it.page-1];
+function chipStyle(it,photos){
+  const photo=(photos||[])[it.page-1];
   let s=`background-color:${rgbHex(it)}`;
   if(photo&&it.rect){
     const [x,y,w,h]=it.rect;
@@ -1515,27 +1546,30 @@ function renderPickArea(){
 /* ---------- 匹配与结果 ---------- */
 function runMatch(){
   if(!pickedColor){ toast('请先上传参考图并在图上点一下取色'); return; }
-  if(!PALT.items.length){ toast('色卡数据未加载'); return; }
+  const pools=loadedVendors();
+  if(!pools.length){ toast('色卡数据未加载'); return; }
   const L=srgb2lab(pickedColor.r,pickedColor.g,pickedColor.b);
-  const scored=PALT.items.map(it=>{
+  const scored=[];
+  pools.forEach(v=>v.palette.items.forEach(it=>{
     if(!it._lab) it._lab=srgb2lab(it.r,it.g,it.b);
-    return {it,de:ciede2000(L,it._lab)};
-  }).sort((a,b)=>a.de-b.de);
+    scored.push({it,de:ciede2000(L,it._lab),vendor:v.name,photos:v.palette.photos});
+  }));
+  scored.sort((a,b)=>a.de-b.de);
   const top=scored.slice(0,8);
   const box=$('matchResult');
   box.innerHTML='';
   const head=document.createElement('div');
   head.className='hintline';
   head.style.marginTop='0';
-  head.innerHTML=`色卡「${escapeHtml(PALT.name)}」共 ${PALT.items.length} 色 · 最接近 <b>${escapeHtml(String(top[0].it.code))}</b> 号（ΔE ${top[0].de.toFixed(1)}）`;
+  head.innerHTML=`已比对 <b>${pools.length}</b> 家色卡共 ${scored.length} 色 · 最接近 <b>${escapeHtml(top[0].vendor)} ${escapeHtml(String(top[0].it.code))} 号</b>（ΔE ${top[0].de.toFixed(1)}）`;
   box.appendChild(head);
   top.forEach((s,i)=>{
     const row=document.createElement('div');
     row.className='match-item'+(i===0?' top1':'');
     row.innerHTML=`<div class="rank">${i+1}</div>
-      <span class="chip" style="${chipStyle(s.it)}"></span>
+      <span class="chip" style="${chipStyle(s.it,s.photos)}"></span>
       <div class="info">
-        <div class="code">${escapeHtml(String(s.it.code))} 号</div>
+        <div class="code"><span class="vtag">${escapeHtml(s.vendor)}</span>${escapeHtml(String(s.it.code))} 号</div>
         <div class="sub">${rgbHex(s.it).toUpperCase()} · ${deLabel(s.de)}</div>
       </div>
       <div class="de"><b>ΔE ${s.de.toFixed(1)}</b>相似 ${deToSim(s.de)}%</div>`;
@@ -1547,41 +1581,82 @@ function runMatch(){
   box.appendChild(foot);
 }
 
-/* ---------- 色卡库界面 ---------- */
-function renderPalTabs(){
-  const box=$('palTabs');
-  if(!box) return;
-  box.innerHTML='';
-  PAL_PAGES.forEach((p,i)=>{
-    const b=document.createElement('button');
-    b.type='button';
-    b.className='pal-tab'+(i===palPageIdx?' on':'');
-    b.textContent=p.from?p.label:`${p.label} ${PALT.items.length} 色`;
-    b.addEventListener('click',()=>{ palPageIdx=i; renderPalTabs(); renderPalGrid(); });
-    box.appendChild(b);
-  });
+/* ---------- 色卡库界面：点击厂家名称展开 / 再点收起（默认收起） ---------- */
+function vendorRangeItems(v){
+  const pg=v.pages[v.pageIdx];
+  if(!pg||!pg.from) return v.palette.items;
+  return v.palette.items.filter(it=>+it.code>=pg.from&&+it.code<=pg.to);
 }
-function renderPalGrid(){
-  const box=$('palSwatches'), nameEl=$('palName'), cntEl=$('palCount');
-  if(!box) return;
-  if(nameEl) nameEl.textContent=PALT.name;
-  if(!PALT.items.length){
-    box.innerHTML='';
-    if(cntEl) cntEl.textContent='色卡数据未加载';
+function renderPalLibrary(){
+  const root=$('palLibrary');
+  if(!root) return;
+  const list=loadedVendors();
+  root.innerHTML='';
+  if(!list.length){
+    root.innerHTML='<div class="hintline">暂无色卡数据。请通过本地服务打开（node server.js），或先在后台录入色卡。</div>';
     return;
   }
-  const pg=PAL_PAGES[palPageIdx];
-  const list=PALT.items.filter(it=>!pg.from||(+it.code>=pg.from&&+it.code<=pg.to));
-  box.innerHTML=list.map(it=>
-    `<div class="sw" title="${escapeHtml(it.code)} 号 · ${rgbHex(it).toUpperCase()}">
-       <span class="chip" style="${chipStyle(it)}"></span>
-       <div class="code">${escapeHtml(it.code)}</div>
-     </div>`).join('');
-  if(cntEl){
-    cntEl.textContent=pg.from
-      ? `${pg.label} 号 · 共 ${list.length} 色`
-      : `共 ${PALT.items.length} 色（1–${PALT.items[PALT.items.length-1].code}）`;
-  }
+  list.forEach((v,vi)=>{
+    const has=!!(v.palette&&v.palette.items.length);
+    const wrap=document.createElement('div');
+    wrap.className='pal-vendor'+(v.open?' open':'');
+    const head=document.createElement('button');
+    head.type='button';
+    head.className='pal-vendor-head';
+    head.id=`palHead${vi}`;
+    head.setAttribute('aria-expanded',v.open?'true':'false');
+    if(!has) head.disabled=true;
+    const caret=document.createElement('span');
+    caret.className='pal-caret';
+    caret.textContent='▶';
+    const nm=document.createElement('span');
+    nm.className='pal-name';
+    nm.id=`palName${vi}`;
+    nm.textContent=vendorName(v);
+    const meta=document.createElement('span');
+    meta.className='pal-meta';
+    meta.id=`palCount${vi}`;
+    if(!has) meta.textContent='暂无色卡';
+    else{
+      const pg=v.pages[v.pageIdx];
+      meta.textContent=v.open
+        ? (pg&&pg.from ? `${pg.label} 号 · ${vendorRangeItems(v).length} 色` : `共 ${v.palette.items.length} 色`)
+        : `共 ${v.palette.items.length} 色`;
+    }
+    head.appendChild(caret); head.appendChild(nm); head.appendChild(meta);
+    head.addEventListener('click',()=>{ if(!has) return; v.open=!v.open; renderPalLibrary(); });
+    wrap.appendChild(head);
+
+    if(v.open&&has){
+      const body=document.createElement('div');
+      body.className='pal-vendor-body';
+      body.id=`palBody${vi}`;
+      const tabs=document.createElement('div');
+      tabs.className='pal-tabs';
+      tabs.id=`palTabs${vi}`;
+      v.pages.forEach((p,i)=>{
+        const b=document.createElement('button');
+        b.type='button';
+        b.className='pal-tab'+(i===v.pageIdx?' on':'');
+        b.textContent=p.from?p.label:`全部 ${v.palette.items.length} 色`;
+        b.addEventListener('click',()=>{ v.pageIdx=i; renderPalLibrary(); });
+        tabs.appendChild(b);
+      });
+      body.appendChild(tabs);
+      const grid=document.createElement('div');
+      grid.className='swatches';
+      grid.id=`palSwatches${vi}`;
+      const items=vendorRangeItems(v);
+      grid.innerHTML=items.map(it=>
+        `<div class="sw" title="${escapeHtml(v.name)} ${escapeHtml(it.code)} 号 · ${rgbHex(it).toUpperCase()}">
+           <span class="chip" style="${chipStyle(it,v.palette.photos)}"></span>
+           <div class="code">${escapeHtml(it.code)}</div>
+         </div>`).join('');
+      body.appendChild(grid);
+      wrap.appendChild(body);
+    }
+    root.appendChild(wrap);
+  });
 }
 
 /* ---------- 初始化 ---------- */
@@ -1601,8 +1676,7 @@ async function initColorModule(){
   $('pickedHex').textContent='未取色';
 
   await loadPalette();
-  renderPalTabs();
-  renderPalGrid();
+  renderPalLibrary();
   renderPickArea();
   if(palSource==='none'){
     toast('色卡未加载：请通过本地服务打开（node server.js）');
