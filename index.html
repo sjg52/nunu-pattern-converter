@@ -360,6 +360,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 
 <script src="assets/palette-seed.js"></script>
 <script src="assets/palette-seed2.js"></script>
+<script src="assets/palette-seed3.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const f1=n=>{const v=Math.round(n*10)/10;return v%1===0?v.toFixed(0):v.toFixed(1)};
@@ -1409,10 +1410,10 @@ const PAL_PAGE_SIZE=42;
 const VENDOR_DEFS=[
   {key:'ywsbe',   name:'义乌思博尔',        src:'api/palette'},
   {key:'vendor2', name:'紫誉 / 大狮子布艺', src:'api/palette2'},
-  {key:'vendor3', name:null,               src:null}
+  {key:'vendor3', name:'鑫鸿布业',          src:'api/palette3'}
 ];
 /* 直接双击打开（无本地服务）时，用同源离线副本兜底 */
-const PAL_SEEDS={ywsbe:'PALETTE_SEED', vendor2:'PALETTE_SEED2'};
+const PAL_SEEDS={ywsbe:'PALETTE_SEED', vendor2:'PALETTE_SEED2', vendor3:'PALETTE_SEED3'};
 let palVendors=VENDOR_DEFS.map(v=>({...v,open:false,pageIdx:0,palette:null,pages:[]}));
 let palSource='none';
 let pickedColor=null, pickImgs=[];

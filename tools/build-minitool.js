@@ -190,7 +190,7 @@ fs.writeFileSync(path.join(DIST, 'index.html'), html);
 fs.writeFileSync(path.join(DIST, 'app.js'), js);
 
 // seed 数据脚本：复制到根目录，并把内部的 photos 路径改为平铺路径
-['palette-seed.js', 'palette-seed2.js'].forEach(f => {
+['palette-seed.js', 'palette-seed2.js', 'palette-seed3.js'].forEach(f => {
   const src = fs.readFileSync(path.join(ROOT, 'assets', f), 'utf8')
     .replace(/"assets\//g, '"').replace(/'assets\//g, "'");
   fs.writeFileSync(path.join(DIST, f), src);
@@ -221,7 +221,7 @@ function resizeJpeg(buf, tw, q) {
   return jpeg.encode({ data: out, width: tw, height: th }, q).data;
 }
 
-const photos = fs.readdirSync(path.join(ROOT, 'assets')).filter(f => /^pal2?-.*\.jpg$/.test(f));
+const photos = fs.readdirSync(path.join(ROOT, 'assets')).filter(f => /^(pal2?|xh)-.*\.jpg$/.test(f));
 let before = 0, after = 0;
 photos.forEach(f => {
   const src = fs.readFileSync(path.join(ROOT, 'assets', f));

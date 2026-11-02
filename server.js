@@ -16,7 +16,8 @@ const PORT = Number(process.env.PORT) || 5179;
 /* 每个厂家一份色卡数据：接口路径 → 数据文件 */
 const PALETTE_ROUTES = {
   '/api/palette': path.join(ROOT, 'data', 'palette.json'),   // 义乌思博尔
-  '/api/palette2': path.join(ROOT, 'data', 'palette2.json')  // 紫誉 / 大狮子布艺
+  '/api/palette2': path.join(ROOT, 'data', 'palette2.json'), // 紫誉 / 大狮子布艺
+  '/api/palette3': path.join(ROOT, 'data', 'palette3.json')  // 鑫鸿布业
 };
 
 const MIME = {
