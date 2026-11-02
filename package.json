@@ -1,8 +1,8 @@
 {
   "name": "nunu-pattern-converter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "努努图纸排版小工具：识别部件、按页排版、导出 PNG，并内置义乌思博尔色卡配色推荐",
+  "description": "努努图纸排版小工具：识别部件、按页排版、导出 PNG（白底/透明/自选底色），并内置义乌思博尔色卡配色推荐",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

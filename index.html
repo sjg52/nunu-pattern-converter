@@ -20,6 +20,13 @@ header.top p{opacity:.92;font-size:13.5px;margin-top:4px}
 .step-num{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
 .step-head h2{font-size:16.5px;font-weight:700}
 .step-head .hint{font-size:12.5px;color:var(--mut);margin-left:auto}
+/* 可折叠卡片（默认折叠） */
+.card.fold>.step-head{cursor:pointer;user-select:none;margin-bottom:0}
+.card.fold>.step-head:hover h2{color:var(--acc)}
+.fold-arrow{margin-left:10px;font-size:11px;color:var(--mut);transition:transform .18s;flex:none}
+.card.fold.off>.step-head .fold-arrow{transform:rotate(-90deg)}
+.card.fold.off>*:not(.step-head){display:none}
+.card.fold.on>.step-head{margin-bottom:14px}
 .field-label{font-size:13px;color:var(--mut);margin:14px 0 6px;font-weight:600}
 .field-label:first-of-type{margin-top:0}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
@@ -68,6 +75,20 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 .pageCell canvas{max-width:100%;max-height:320px;border:1px solid #eee;background:#fff;border-radius:6px}
 .pageCell .cap{font-size:12.5px;color:var(--mut);margin-top:6px}
 #emptyHint{color:var(--mut);font-size:14px}
+
+/* 导出底色：白底 / 透明 / 自选 */
+#dlOpts{display:none;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+#dlOpts .field-label{margin-top:0}
+#bgCustomRow{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+#bgCustomRow.on{display:flex}
+#bgCustomRow input[type=color]{width:52px;height:40px;border:1px solid #bcd5e8;border-radius:9px;background:#fff;padding:2px;cursor:pointer;flex:none}
+#bgCustomRow input[type=text]{width:104px;padding:8px 10px;border:1px solid #bcd5e8;border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);text-transform:lowercase}
+#bgCustomRow input[type=text]:focus{outline:2px solid #b3d0e8;border-color:var(--acc)}
+#bgCustomRow .unit{font-size:13px;color:var(--mut)}
+/* 透明底色预览：棋盘格衬底，直观看出哪部分是空的 */
+.pageCell canvas.chk{background-color:#fff;
+  background-image:linear-gradient(45deg,#e9eff5 25%,transparent 25%),linear-gradient(-45deg,#e9eff5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e9eff5 75%),linear-gradient(-45deg,transparent 75%,#e9eff5 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
 
 /* 生成排版按钮栏 + 结果过期提示 */
 #genBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
@@ -283,17 +304,35 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     <div id="emptyHint">请先上传图纸图片。</div>
     <div id="resultMeta" style="display:none"></div>
     <div id="pagesGrid"></div>
+
+    <!-- 导出底色：预览与下载同源，选什么就导出什么 -->
+    <div id="dlOpts">
+      <div class="field-label">导出底色</div>
+      <div class="seg" id="bgSel">
+        <button type="button" data-v="white" class="on">白底 PNG</button>
+        <button type="button" data-v="transparent">透明 PNG</button>
+        <button type="button" data-v="custom">自选底色</button>
+      </div>
+      <div id="bgCustomRow">
+        <input type="color" id="bgColor" value="#f2ede2" aria-label="自定义底色">
+        <input type="text" id="bgHex" value="#f2ede2" maxlength="7" spellcheck="false" aria-label="自定义底色色值">
+        <span class="unit">点左侧取色，或直接输入 #RRGGBB</span>
+      </div>
+      <div class="hintline" id="bgHint">白底：直接打印最省事；透明：叠到彩色或花纹纸上不挡底；自选底色：对齐布样或深色纸用。</div>
+    </div>
+
     <div class="actions">
-      <button class="btn primary" id="btnPng" disabled>下载全部页面（PNG）</button>
+      <button class="btn primary" id="btnPng" disabled>下载全部页面（白底 PNG）</button>
       <button class="btn ghost" id="btnAll" disabled style="display:none"></button>
     </div>
   </section>
 
   <!-- 步骤 5：配色推荐 -->
-  <section class="card">
-    <div class="step-head">
+  <section class="card fold off" id="secColor">
+    <div class="step-head" id="secColorHead" role="button" tabindex="0" title="点击展开 / 收起">
       <span class="step-num" style="background:#8e6bb5">★</span><h2>配色推荐</h2>
-      <span class="hint">上传参考图取色，匹配义乌思博尔色号</span>
+      <span class="hint">上传参考图取色，匹配色号，色号仅供参考</span>
+      <span class="fold-arrow">▼</span>
     </div>
 
     <div class="field-label">① 色卡库</div>
@@ -311,7 +350,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
     </div>
 
     <div class="field-label">③ 推荐色号</div>
-    <div id="matchResult"><div class="hintline">上传参考图后，在图上点一下想配的颜色（比如头发），再点「匹配色号」。</div></div>
+    <div id="matchResult"><div class="hintline">图上点击需要匹配的颜色，点击「匹配色号」获取颜色匹配</div></div>
   </section>
 
 </div>
@@ -320,6 +359,7 @@ footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--mut)}
 <div id="toast"></div>
 
 <script src="assets/palette-seed.js"></script>
+<script src="assets/palette-seed2.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const f1=n=>{const v=Math.round(n*10)/10;return v%1===0?v.toFixed(0):v.toFixed(1)};
@@ -344,6 +384,7 @@ const state={
   srcPreset:'nunu',srcW:35,srcH:35,
   tgtPreset:'a4l',tgtW:29.7,tgtH:21,
   dpi:300,gapMm:1,
+  bgMode:'white',bgColor:'#f2ede2',   // 导出底色：white | transparent | custom
   bgTol:30,minArea:300,
   parts:[],pagesData:[],layoutMeta:null,count:0,busy:false,
   dirty:true,packing:false,
@@ -948,7 +989,8 @@ function highlightPart(uid){
 function pageThumbScale(){ const m=state.layoutMeta; return m? Math.min(1, 560/Math.max(m.pageWpx,m.pageHpx)) : 1; }
 
 function renderResult(){
-  const none=$('emptyHint'), meta=$('resultMeta'), grid=$('pagesGrid'), btn=$('btnPng');
+  const none=$('emptyHint'), meta=$('resultMeta'), grid=$('pagesGrid'), btn=$('btnPng'), dlOpts=$('dlOpts');
+  dlOpts.style.display='none';   // 无结果时不显示导出选项，成功分支里再打开
   if(!state.imgs.length){ none.style.display='block'; meta.style.display='none'; grid.innerHTML=''; btn.disabled=true; $('ratioBadge').textContent=''; return; }
   const usable=activeParts();
   if(!state.parts.length){
@@ -988,53 +1030,73 @@ function renderResult(){
   $('ratioBadge').innerHTML = mismatch>0.05
     ? `<span class="badge">源尺寸方向与图片不一致，可能导致比例偏差</span>` : '';
 
-  // 缩略图
+  // 缩略图（底色与导出保持一致，所见即所得）
   grid.innerHTML='';
-  const canvases=[];
   state.pagesData.forEach((page,pi)=>{
     const cell=document.createElement('div'); cell.className='pageCell';
     const cv=renderThumb(page);
+    if(state.bgMode==='transparent') cv.className='chk';
     cell.appendChild(cv);
     const cap=document.createElement('div'); cap.className='cap';
     cap.textContent = n>1 ? `第 ${pi+1} 页 · ${page.items.length} 个部件` : `${page.items.length} 个部件`;
     cell.appendChild(cap);
     grid.appendChild(cell);
-    canvases.push(cv);
   });
+  dlOpts.style.display='block';
   btn.disabled=state.dirty;   // 结果已过期时不允许下载旧图
+  syncDlLabel();
 }
 
-function renderThumb(page){
+/* ---------- 导出底色（白底 / 透明 / 自选） ---------- */
+/* 返回画布要填的底色；null 表示不填（保留透明通道） */
+function bgFill(){
+  if(state.bgMode==='transparent') return null;
+  if(state.bgMode==='custom') return state.bgColor||'#ffffff';
+  return '#ffffff';
+}
+function bgLabel(){
+  if(state.bgMode==='transparent') return '透明';
+  if(state.bgMode==='custom') return (state.bgColor||'#ffffff').toUpperCase();
+  return '白底';
+}
+function syncDlLabel(){
+  const btn=$('btnPng'); if(!btn) return;
+  btn.textContent=`下载全部页面（${bgLabel()} PNG）`;
+}
+
+/* 以 scale 把一页画到新画布上；bg 为 null 时不铺底 */
+function paintPage(page,s,bg){
   const m=state.layoutMeta;
-  const s=pageThumbScale();
   const cv=document.createElement('canvas');
   cv.width=Math.max(1,Math.round(m.pageWpx*s)); cv.height=Math.max(1,Math.round(m.pageHpx*s));
   const ctx=cv.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+  if(bg){ ctx.fillStyle=bg; ctx.fillRect(0,0,cv.width,cv.height); }
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   for(const it of page.items){
+    // 部件画布本身带透明通道（按形状裁切），叠加到任意底色上都保留真实轮廓
     ctx.drawImage(it.canvas, 0,0,it.canvas.width,it.canvas.height, it.x*s,it.y*s,it.w*s,it.h*s);
   }
   return cv;
 }
 
-function renderPageFull(page){
-  const m=state.layoutMeta;
-  const cv=document.createElement('canvas');
-  cv.width=m.pageWpx; cv.height=m.pageHpx;
-  const ctx=cv.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  for(const it of page.items){
-    ctx.drawImage(it.canvas, 0,0,it.canvas.width,it.canvas.height, it.x,it.y,it.w,it.h);
-  }
-  return cv;
+function renderThumb(page){ return paintPage(page, pageThumbScale(), bgFill()); }
+function renderPageFull(page){ return paintPage(page, 1, bgFill()); }
+
+/* 改底色只重画结果区（不重算排版），颜色拖动时做 120ms 防抖 */
+let bgRepaintTimer=null;
+function repaintForBg(immediate){
+  if(!state.pagesData.length) return;
+  clearTimeout(bgRepaintTimer);
+  syncDlLabel();
+  if(immediate){ renderResult(); return; }
+  bgRepaintTimer=setTimeout(()=>renderResult(),120);
 }
 
 function fileName(idx,n){
   const base=(state.imgName.replace(/\.[^.]+$/,'')||'图纸');
   const tgt=`${f1(state.tgtW)}x${f1(state.tgtH)}cm_${state.dpi}dpi`;
-  return n>1 ? `${base}_${tgt}_第${idx+1}页.png` : `${base}_${tgt}.png`;
+  const tag=state.bgMode==='custom'? (state.bgColor||'#ffffff').replace('#','') : bgLabel();
+  return n>1 ? `${base}_${tgt}_${tag}_第${idx+1}页.png` : `${base}_${tgt}_${tag}.png`;
 }
 
 function downloadAll(){
@@ -1053,7 +1115,7 @@ function downloadAll(){
       },'image/png');
     }, idx*350);
   });
-  toast(`已开始下载 ${n} 页 PNG`);
+  toast(`已开始下载 ${n} 页 PNG（${bgLabel()}）`);
 }
 
 /* ---------- 上传（多图） ---------- */
@@ -1181,6 +1243,33 @@ $('btnReDetect').addEventListener('click',()=>{
   recognizeAll();
   $('recogHint').textContent=`识别到 ${state.count} 个部件`;
 });
+/* ---------- 导出底色交互 ---------- */
+(function bindBg(){
+  const box=$('bgSel'), row=$('bgCustomRow'), clr=$('bgColor'), hex=$('bgHex');
+  if(!box) return;
+  box.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    state.bgMode=b.dataset.v;
+    row.classList.toggle('on', state.bgMode==='custom');
+    if(state.bgMode==='custom'){ clr.value=state.bgColor; hex.value=state.bgColor; }
+    repaintForBg(true);
+  });
+  // 统一校验并写回 #RRGGBB；非法输入不打断输入过程，失焦时再纠正
+  function setColor(v,from){
+    const c=String(v||'').trim().replace(/^#/,'');
+    if(!/^[0-9a-fA-F]{6}$/.test(c)) return false;
+    state.bgColor='#'+c.toLowerCase();
+    if(from!=='color') clr.value=state.bgColor;
+    if(from!=='hex') hex.value=state.bgColor;
+    return true;
+  }
+  clr.addEventListener('input',()=>{ if(setColor(clr.value,'color')) repaintForBg(false); });
+  clr.addEventListener('change',()=>{ if(setColor(clr.value,'color')) repaintForBg(true); });
+  hex.addEventListener('input',()=>{ if(setColor(hex.value,'hex')) repaintForBg(false); });
+  hex.addEventListener('blur',()=>{ hex.value=state.bgColor; });
+})();
+
 $('btnPng').addEventListener('click',downloadAll);
 $('btnGen').addEventListener('click',requestGenerate);
 
@@ -1315,14 +1404,15 @@ function deLabel(de){
    数据唯一来源是 data/palette.json，由本地服务 /api/palette 提供；
    直接双击打开（没有服务）时，回退到 assets/palette-seed.js 里的同源副本。 */
 /* 固定三个厂家，写死不做动态增删。
-   每家的色卡数据存在后端 data/ 下，由 src 指定取数接口；src 为 null 表示该厂家还没录色卡。
-   目前只有义乌思博尔有色卡，另外两家留位，录入后填上 src 即可自动出现。 */
+   每家的色卡数据存在后端 data/ 下，由 src 指定取数接口；src 为 null 表示该厂家还没录色卡。 */
 const PAL_PAGE_SIZE=42;
 const VENDOR_DEFS=[
-  {key:'ywsbe',   name:'义乌思博尔', src:'api/palette'},
-  {key:'vendor2', name:null,         src:null},
-  {key:'vendor3', name:null,         src:null}
+  {key:'ywsbe',   name:'义乌思博尔',        src:'api/palette'},
+  {key:'vendor2', name:'紫誉 / 大狮子布艺', src:'api/palette2'},
+  {key:'vendor3', name:null,               src:null}
 ];
+/* 直接双击打开（无本地服务）时，用同源离线副本兜底 */
+const PAL_SEEDS={ywsbe:'PALETTE_SEED', vendor2:'PALETTE_SEED2'};
 let palVendors=VENDOR_DEFS.map(v=>({...v,open:false,pageIdx:0,palette:null,pages:[]}));
 let palSource='none';
 let pickedColor=null, pickImgs=[];
@@ -1364,7 +1454,8 @@ async function loadPalette(){
       if(res.ok) raw=await res.json();
     }catch(e){ /* 没有后端（直接打开文件）时走本地副本 */ }
     if(!raw||!raw.items||!raw.items.length){
-      if(v.key==='ywsbe'&&window.PALETTE_SEED&&window.PALETTE_SEED.items){ raw=window.PALETTE_SEED; }
+      const g=PAL_SEEDS[v.key];
+      if(g&&window[g]&&window[g].items){ raw=window[g]; }
     }else{ palSource='backend'; }
     if(raw&&raw.items&&raw.items.length){
       if(palSource!=='backend') palSource='seed';
@@ -1514,7 +1605,7 @@ function renderPickArea(){
   tip.className='hintline'; tip.style.marginTop='0';
   tip.textContent=pickImgs.length
     ? '在图上点一下要配的颜色（取周围一圈中位色，避噪点）'
-    : '上传娃娃照片 / 图纸 / 布料图都行，和上面排版用的图纸互不干扰';
+    : '请上传图片';
   bar.appendChild(tip);
   wrap.appendChild(bar);
 
@@ -1686,6 +1777,21 @@ async function initColorModule(){
     toast('色卡未加载：请通过本地服务打开（node server.js）');
   }
 }
+
+/* 折叠卡片：点标题栏展开 / 收起（配色推荐默认折叠） */
+(function(){
+  const sec=$('secColor'), head=$('secColorHead');
+  if(!sec||!head) return;
+  const toggle=()=>{
+    const open=sec.classList.contains('off');
+    sec.classList.toggle('off',!open);
+    sec.classList.toggle('on',open);
+  };
+  head.addEventListener('click',toggle);
+  head.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); }
+  });
+})();
 
 render();
 initColorModule();

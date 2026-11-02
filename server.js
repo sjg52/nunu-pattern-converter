@@ -13,7 +13,11 @@ const path = require('path');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 5179;
-const PALETTE_FILE = path.join(ROOT, 'data', 'palette.json');
+/* 每个厂家一份色卡数据：接口路径 → 数据文件 */
+const PALETTE_ROUTES = {
+  '/api/palette': path.join(ROOT, 'data', 'palette.json'),   // 义乌思博尔
+  '/api/palette2': path.join(ROOT, 'data', 'palette2.json')  // 紫誉 / 大狮子布艺
+};
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -43,28 +47,30 @@ const server = http.createServer((req, res) => {
   const pathname = decodeURIComponent(url.pathname);
 
   // 色卡接口（只读）
-  if (pathname === '/api/palette') {
+  if (PALETTE_ROUTES[pathname]) {
+    const file = PALETTE_ROUTES[pathname];
+    const rel = path.relative(ROOT, file);
     if (req.method !== 'GET') {
       sendJson(res, 405, { error: '色卡数据为固定内容，只支持 GET' });
       return;
     }
-    fs.readFile(PALETTE_FILE, (err, buf) => {
+    fs.readFile(file, (err, buf) => {
       if (err) {
-        sendJson(res, 500, { error: '读不到 data/palette.json' });
+        sendJson(res, 500, { error: '读不到 ' + rel });
         return;
       }
       try {
         const data = JSON.parse(buf.toString('utf8'));
         sendJson(res, 200, data);
       } catch (e) {
-        sendJson(res, 500, { error: 'data/palette.json 格式不是合法 JSON' });
+        sendJson(res, 500, { error: rel + ' 格式不是合法 JSON' });
       }
     });
     return;
   }
 
   if (pathname === '/api/health') {
-    sendJson(res, 200, { ok: true, palette: PALETTE_FILE });
+    sendJson(res, 200, { ok: true, palettes: PALETTE_ROUTES });
     return;
   }
 
@@ -94,5 +100,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log('努努排版小工具已启动');
   console.log('  页面:      http://localhost:' + PORT + '/');
-  console.log('  色卡接口:  http://localhost:' + PORT + '/api/palette');
+  Object.keys(PALETTE_ROUTES).forEach(p => console.log('  色卡接口:  http://localhost:' + PORT + p));
 });
